@@ -13,7 +13,9 @@
       var image=node('div','anh-mau','Đang tải ảnh…'),info=node('div','thong-tin'),title=node('h3','',item.title),tag=node('span','nhan',(item.kind==='real'?'Thực tế':'Toán cơ bản')+(item.grade?' · Khối '+item.grade:''));
       info.append(title,tag);var chiTiet=[item.topic,item.tags].filter(Boolean).join(' · ');if(chiTiet)info.append(node('p','mo',chiTiet));card.append(image,info);
       var sua=node('button','nut nho nut-sua','Edit');sua.type='button';sua.title='Sửa nhanh: copy mã, sửa mã, đổi tên';sua.setAttribute('aria-label','Sửa nhanh '+(item.title||'hình'));sua.onclick=function(e){e.preventDefault();e.stopPropagation();moSua(item);};
-      khung.append(card,sua);grid.append(khung);
+      var zip=node('button','nut nho nut-sua nut-zip','ZIP');zip.type='button';zip.title='Tải ZIP: file .tex và ảnh của hình này';zip.setAttribute('aria-label','Tải ZIP '+(item.title||'hình'));
+      zip.onclick=async function(e){e.preventDefault();e.stopPropagation();zip.disabled=true;zip.textContent='…';try{await Kho.taiZipMot(item.id);}catch(x){HienThi.loi(x);}finally{zip.disabled=false;zip.textContent='ZIP';}};
+      khung.append(card,zip,sua);grid.append(khung);
       var observer=new IntersectionObserver(function(entries){if(!entries.some(function(x){return x.isIntersecting;}))return;observer.disconnect();Kho.anh(item).then(function(src){if(current!==generation)return;image.textContent='';if(src){var img=document.createElement('img');img.alt=item.title;img.src=src;image.append(img);}else image.textContent='Chưa có ảnh';}).catch(function(){image.textContent='Không tải được ảnh';});});observer.observe(card);
     });
   }
@@ -28,7 +30,7 @@
     '<label>Mã TikZ<textarea class="o-nhap" id="hs-ma" spellcheck="false"></textarea></label>'+
     '<p class="mo" id="hs-trang-thai"></p><p class="hs-loi" id="hs-loi" hidden></p>'+
     '<div class="hang-nut"><button type="button" class="nut nho" id="hs-copy">Copy mã</button><a class="nut nho" id="hs-mo">Mở trang sửa đầy đủ</a><span class="gian"></span>'+
-    '<button type="button" class="nut nho nguy" id="hs-xoa">Xóa hình</button><button type="button" class="nut nho" id="hs-dong">Đóng</button><button type="button" class="nut nho chinh" id="hs-luu">Lưu</button></div></form>';
+    '<button type="button" class="nut nho" id="hs-zip">Tải ZIP</button><button type="button" class="nut nho nguy" id="hs-xoa">Xóa hình</button><button type="button" class="nut nho" id="hs-dong">Đóng</button><button type="button" class="nut nho chinh" id="hs-luu">Lưu</button></div></form>';
   document.body.append(hop);
   var $=function(id){return document.getElementById('hs-'+id);},goc=null,busy=false,luot=0;
   function baoLoi(text){$('loi').textContent=text||'';$('loi').hidden=!text;}
@@ -43,6 +45,8 @@
     $('trang-thai').textContent=!coTheLuu(item)?'Bạn chỉ có quyền xem và copy mã. Muốn lưu bản sửa, bấm "Mở trang sửa đầy đủ" để lưu nháp.':laNhap(item)?'Đây là bản nháp trên máy: bấm Lưu sẽ cập nhật bản nháp.':'Sửa xong bấm Lưu. Nếu mã thay đổi, web sẽ build lại ảnh rồi mới lưu vào kho.';
   }
   $('dong').onclick=function(){if(!busy)hop.close();};
+  $('zip').onclick=async function(){if(!goc||busy)return;var b=this;b.disabled=true;try{await Kho.taiZipMot(goc.item.id);}catch(e){baoLoi(e.message||String(e));}finally{b.disabled=false;}};
+  document.getElementById('tai-toan-bo').onclick=async function(){var b=this,cu=b.textContent;b.disabled=true;HienThi.xoaLoi();try{var kq=await Kho.taiZipToanBo(function(i,n){b.textContent='Đang gói '+i+'/'+n+'…';});GiaoDien.thongBao('Đã tải '+kq.soHinh+' hình.');if(kq.loi.length)HienThi.loi(Error('Một số hình chưa gói được:\n'+kq.loi.join('\n')));}catch(e){HienThi.loi(e);}finally{b.disabled=false;b.textContent=cu;}};
   $('xoa').onclick=async function(){if(!goc||busy)return;if(!confirm('Xóa hẳn hình "'+(goc.item.title||'')+'" khỏi kho? Không hoàn tác được.'))return;khoa(true);try{await Kho.xoa(goc.item.id);items=items.filter(function(x){return x!==goc.item;});khoa(false);hop.close();render();GiaoDien.thongBao('Đã xóa hình.');}catch(e){khoa(false);baoLoi(e.message||String(e));}};
   hop.addEventListener('cancel',function(e){if(busy)e.preventDefault();});
   $('copy').onclick=async function(){var ma=$('ma');try{await navigator.clipboard.writeText(ma.value);}catch(e){ma.focus();ma.select();try{document.execCommand('copy');}catch(x){GiaoDien.thongBao('Hãy bôi đen mã rồi Ctrl+C.','loi');return;}}GiaoDien.thongBao('Đã copy mã.');};

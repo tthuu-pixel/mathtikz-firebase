@@ -84,6 +84,7 @@
     var FB = await san(), cu = await FB.get('hinh/' + id), bay = new Date().toISOString();
     var meta = { title: title, kind: item.kind, grade: grade, topic: String(item.topic || '').slice(0, 100), tags: String(item.tags || '').slice(0, 500),
       description: String(item.description || '').slice(0, 1000), createdAt: cu && cu.createdAt || bay, updatedAt: bay };
+    if (cu && cu.dongBo) meta.dongBo = cu.dongBo;
     await FB.ghiNhieu([{ path: 'hinh/' + id, data: meta }, { path: 'ma/' + id, data: { source: source, v: bay } }, { path: 'anh/' + id, data: { data: image, v: bay } }]);
     xoaNhap('nhap-' + id);
     if (laNhap(item.id)) xoaNhap(item.id);
@@ -91,8 +92,13 @@
   }
   async function xoa(id) {
     if (laNhap(id)) return xoaNhap(id);
-    var FB = await san();
-    await FB.ghiNhieu([{ path: 'hinh/' + id, xoa: true }, { path: 'ma/' + id, xoa: true }, { path: 'anh/' + id, xoa: true }]);
+    var FB = await san(), cu = await FB.get('hinh/' + id), ds = [{ path: 'hinh/' + id, xoa: true }, { path: 'ma/' + id, xoa: true }, { path: 'anh/' + id, xoa: true }];
+    if (cu && cu.dongBo && cu.dongBo.idCu) {
+      var db = (await FB.get('caiDat/dongBo')) || {}, daXoa = (db.daXoa || []).filter(function (x) { return x !== cu.dongBo.idCu; });
+      daXoa.push(cu.dongBo.idCu);
+      ds.push({ path: 'caiDat/dongBo', data: Object.assign({}, db, { daXoa: daXoa }) });
+    }
+    await FB.ghiNhieu(ds);
   }
 
   /* ---------- Các lệnh trước đây gửi lên Apps Script, nay chạy ngay trên máy ---------- */
@@ -113,7 +119,40 @@
     throw Error('Hành động không hợp lệ: ' + action);
   }
 
+  /* ---------- Tải ZIP ---------- */
+  function tepCuaHinh(x, thuMuc) {
+    var ten = Tikz.ten(x.title || 'hinh', String(x.id).replace(/^nhap-/, '')), ds = [{ name: thuMuc + ten + '.tex', data: x.source || '' }];
+    var a = x.image && Zip.tuDataUrl(x.image);
+    if (a) ds.push({ name: thuMuc + ten + '.' + a.duoi, data: a.bytes });
+    return { ten: ten, tep: ds };
+  }
+  async function taiZipMot(id) {
+    var x = await doc(id);
+    if (!x.image && x.source) { try { x.image = await build(x.source); } catch (e) {} }
+    var g = tepCuaHinh(x, '');
+    taiBlob(Zip.tao(g.tep), g.ten + '.zip');
+  }
+  async function taiZipToanBo(tienDo) {
+    var FB = await san(), ds = (await FB.ds('hinh')).sort(moiTruoc), tep = [], danhMuc = [], loi = [];
+    for (var i = 0; i < ds.length; i++) {
+      if (tienDo) tienDo(i, ds.length);
+      try {
+        var x = await doc(ds[i].id), g = tepCuaHinh(x, 'hinh/');
+        tep = tep.concat(g.tep);
+        danhMuc.push({ id: x.id, ten: g.ten, title: x.title, kind: x.kind, grade: x.grade, topic: x.topic, tags: x.tags, description: x.description, createdAt: x.createdAt, updatedAt: x.updatedAt, coAnh: g.tep.length > 1 });
+      } catch (e) { loi.push(ds[i].title + ': ' + (e.message || e)); }
+    }
+    if (tienDo) tienDo(ds.length, ds.length);
+    tep.push({ name: 'danh-muc.json', data: JSON.stringify({ xuatLuc: new Date().toISOString(), soHinh: danhMuc.length, hinh: danhMuc }, null, 2) });
+    tep.push({ name: 'macro-chung.tex', data: await macro() });
+    var ngay = new Date().toISOString().slice(0, 10);
+    taiBlob(Zip.tao(tep), 'mathtikz-kho-' + ngay + '.zip');
+    return { soHinh: danhMuc.length, loi: loi };
+  }
+  function taiBlob(blob, ten) { var url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = ten; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 5000); }
+
   window.Kho = {
+    taiZipMot: taiZipMot, taiZipToanBo: taiZipToanBo,
     api: api, danhSach: danhSach, theoDoi: theoDoi, doc: doc, anh: anh, build: build, thuBuild: thuBuild, macro: macro,
     luu: luu, xoa: xoa, nhap: put, docNhap: read,
     ve: async function (prompt, ids) {
