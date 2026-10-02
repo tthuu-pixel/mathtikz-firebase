@@ -7,12 +7,12 @@ window.CAU_HINH = {
   BUILD_TIKZ_URL: 'https://tikz-fly.fly.dev/compile',
   // Dán đoạn firebaseConfig lấy ở Firebase Console → Project settings → Your apps.
   FIREBASE: {
-    apiKey: '',
-    authDomain: '',
-    projectId: '',
-    storageBucket: '',
-    messagingSenderId: '',
-    appId: ''
+    apiKey: 'AIzaSyB-gwYkvNnyPfOCFfGcHWumdxZ4Zrq4DTw',
+    authDomain: 'mathtikz.firebaseapp.com',
+    projectId: 'mathtikz',
+    storageBucket: 'mathtikz.firebasestorage.app',
+    messagingSenderId: '655334175187',
+    appId: '1:655334175187:web:7187e0e18675c2aba87f26'
   },
   // Địa chỉ máy chủ Apps Script cũ — chỉ dùng cho trang chuyen-du-lieu.html.
   API_CU: 'https://script.google.com/macros/s/AKfycbwq05LCZrGJ6Rh5oeHE2z9fS0LYK8uqosRyObMOd_PxUILD0U-QL-tlArQFcvLVDdVV/exec'
