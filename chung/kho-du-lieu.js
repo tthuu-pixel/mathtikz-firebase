@@ -11,6 +11,7 @@
   function read(id) { return db().then(function (d) { return new Promise(function (ok, no) { var r = d.transaction('samples').objectStore('samples')[id ? 'get' : 'getAll'](id); r.onsuccess = function () { ok(r.result); }; r.onerror = function () { no(r.error); }; }); }); }
   function put(item) { return db().then(function (d) { return new Promise(function (ok, no) { var t = d.transaction('samples', 'readwrite'); t.objectStore('samples').put(item); t.oncomplete = function () { ok(item); }; t.onerror = function () { no(t.error); }; t.onabort = function () { no(t.error || Error('Không lưu được bản nháp.')); }; }); }); }
   function xoaNhap(id) { return db().then(function (d) { return new Promise(function (ok) { var t = d.transaction('samples', 'readwrite'); t.objectStore('samples').delete(id); t.oncomplete = function () { ok(); }; t.onerror = function () { ok(); }; }); }); }
+  function chuanNhom(s) { return String(s || '').replace(/\s+/g, ' ').trim().slice(0, 60); }
   function laNhap(id) { return String(id || '').indexOf('nhap-') === 0; }
   function moiTruoc(a, b) { return String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')); }
 
@@ -84,6 +85,7 @@
     var FB = await san(), cu = await FB.get('hinh/' + id), bay = new Date().toISOString();
     var meta = { title: title, kind: item.kind, grade: grade, topic: String(item.topic || '').slice(0, 100), tags: String(item.tags || '').slice(0, 500),
       description: String(item.description || '').slice(0, 1000), createdAt: cu && cu.createdAt || bay, updatedAt: bay };
+    meta.nhom = chuanNhom(item.nhom);
     if (cu && cu.dongBo) meta.dongBo = cu.dongBo;
     await FB.ghiNhieu([{ path: 'hinh/' + id, data: meta }, { path: 'ma/' + id, data: { source: source, v: bay } }, { path: 'anh/' + id, data: { data: image, v: bay } }]);
     xoaNhap('nhap-' + id);
@@ -132,27 +134,42 @@
     var g = tepCuaHinh(x, '');
     taiBlob(Zip.tao(g.tep), g.ten + '.zip');
   }
-  async function taiZipToanBo(tienDo) {
+  async function taiZipToanBo(tienDo, chiNhom) {
     var FB = await san(), ds = (await FB.ds('hinh')).sort(moiTruoc), tep = [], danhMuc = [], loi = [];
+    if (chiNhom) ds = ds.filter(function (x) { return x.nhom === chiNhom; });
     for (var i = 0; i < ds.length; i++) {
       if (tienDo) tienDo(i, ds.length);
       try {
-        var x = await doc(ds[i].id), g = tepCuaHinh(x, 'hinh/');
+        var x = await doc(ds[i].id), g = tepCuaHinh(x, chiNhom ? '' : 'hinh/' + (x.nhom ? thuMucNhom(x.nhom) + '/' : ''));
         tep = tep.concat(g.tep);
-        danhMuc.push({ id: x.id, ten: g.ten, title: x.title, kind: x.kind, grade: x.grade, topic: x.topic, tags: x.tags, description: x.description, createdAt: x.createdAt, updatedAt: x.updatedAt, coAnh: g.tep.length > 1 });
+        danhMuc.push({ id: x.id, ten: g.ten, title: x.title, nhom: x.nhom || '', kind: x.kind, grade: x.grade, topic: x.topic, tags: x.tags, description: x.description, createdAt: x.createdAt, updatedAt: x.updatedAt, coAnh: g.tep.length > 1 });
       } catch (e) { loi.push(ds[i].title + ': ' + (e.message || e)); }
     }
     if (tienDo) tienDo(ds.length, ds.length);
     tep.push({ name: 'danh-muc.json', data: JSON.stringify({ xuatLuc: new Date().toISOString(), soHinh: danhMuc.length, hinh: danhMuc }, null, 2) });
     tep.push({ name: 'macro-chung.tex', data: await macro() });
     var ngay = new Date().toISOString().slice(0, 10);
-    taiBlob(Zip.tao(tep), 'mathtikz-kho-' + ngay + '.zip');
+    taiBlob(Zip.tao(tep), chiNhom ? 'mathtikz-' + thuMucNhom(chiNhom) + '-' + ngay + '.zip' : 'mathtikz-kho-' + ngay + '.zip');
     return { soHinh: danhMuc.length, loi: loi };
+  }
+  function thuMucNhom(n) { return Tikz.chuan(n).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'nhom'; }
+  /* ---------- Nhóm hình (một cấp): hinh/{id}.nhom; không đổi updatedAt để đồng bộ không coi là sửa hình ---------- */
+  async function datNhom(ids, ten) {
+    ten = chuanNhom(ten);
+    var nhap = ids.filter(laNhap), xa = ids.filter(function (id) { return !laNhap(id); });
+    for (var i = 0; i < nhap.length; i++) { var d = await read(nhap[i]); if (d) { d.nhom = ten; await put(d); } }
+    if (xa.length) { var FB = await san(); for (var k = 0; k < xa.length; k += 400) await FB.ghiNhieu(xa.slice(k, k + 400).map(function (id) { return { path: 'hinh/' + id, data: { nhom: ten }, gop: true }; })); }
+    return ten;
+  }
+  async function doiTenNhom(cu, moi) {
+    var FB = await san(), ds = (await FB.ds('hinh')).concat(await read()).filter(function (x) { return x.nhom === cu; });
+    return datNhom(ds.map(function (x) { return x.id; }), moi);
   }
   function taiBlob(blob, ten) { var url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = ten; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 5000); }
 
   window.Kho = {
-    taiZipMot: taiZipMot, taiZipToanBo: taiZipToanBo,
+    taiZipMot: taiZipMot, taiZipToanBo: taiZipToanBo, taiZipNhom: function (ten, tienDo) { return taiZipToanBo(tienDo, ten); },
+    chuanNhom: chuanNhom, datNhom: datNhom, doiTenNhom: doiTenNhom,
     api: api, danhSach: danhSach, theoDoi: theoDoi, doc: doc, anh: anh, build: build, thuBuild: thuBuild, macro: macro,
     luu: luu, xoa: xoa, nhap: put, docNhap: read,
     // Dựng hình theo đề: các hình được chọn (ids) thành pic, AI chỉ đặt pic và vẽ yếu tố toán học.

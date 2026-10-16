@@ -45,7 +45,7 @@ try {
     // Ghi nhiều tài liệu một lần (tất cả hoặc không gì cả). Mỗi mục {path, data} hoặc {path, xoa:true}.
     ghiNhieu: function (ds) {
       var b = writeBatch(db);
-      ds.forEach(function (x) { if (x.xoa) b.delete(ref(x.path)); else b.set(ref(x.path), x.data); });
+      ds.forEach(function (x) { if (x.xoa) b.delete(ref(x.path)); else if (x.gop) b.set(ref(x.path), x.data, { merge: true }); else b.set(ref(x.path), x.data); });
       return b.commit();
     },
     ds: async function (ten) { var s = await getDocs(collection(db, ten)); return s.docs.map(coId); },

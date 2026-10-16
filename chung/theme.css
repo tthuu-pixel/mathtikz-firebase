@@ -112,3 +112,18 @@ dialog.hop-sua{width:min(880px,calc(100vw - 32px));max-width:none;border:1px sol
 .them-mau-tay .o-nhap{margin-top:10px;width:100%}
 .nut.nho.nut-sua.nut-xoa{right:auto;left:10px;color:#f5a3a3;border-color:#6a3a44}
 .nut.nho.nut-sua.nut-xoa:hover{background:#3a2128;border-color:#b45a66;color:#ffd0d0}
+.duong-dan,.thanh-chon{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 14px;margin:0 0 14px;border:1px solid #2d3b4f;border-radius:10px;background:#162231}
+.duong-dan .gian,.thanh-chon .gian{flex:1}
+.thanh-chon{border-color:#3d6a8f;background:#14283a;position:sticky;top:8px;z-index:5}
+.thanh-chon .o-nhap{width:240px;max-width:100%}
+.ten-nhom-mo{font-size:15px}
+.mau-khung.nhom-khung>.mau{border-color:#3d6a8f;box-shadow:6px 6px 0 -1px #1c2a3b,6px 6px 0 0 #3d6a8f,12px 12px 0 -1px #172333,12px 12px 0 0 #2d4a66}
+.mau-khung.nhom-khung{margin:0 12px 12px 0}
+.nhan.nhan-nhom{background:#2c4d6b;color:#cfe6fa}
+.o-tich{position:absolute;top:10px;left:10px;z-index:3;width:26px;height:26px;border-radius:7px;border:2px solid #9fb6cf;background:#0f1a26cc;display:grid;place-items:center;color:#fff;font-weight:700;pointer-events:none}
+.mau-khung.da-chon>.mau{outline:3px solid #62b1e9;outline-offset:-3px}
+.mau-khung.da-chon .o-tich{background:#4b9fdc;border-color:#4b9fdc}
+.dang-chon .mau-khung:not(.nhom-khung) .nut-sua{display:none}
+.hop-sua .hai-o{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+@media(max-width:650px){.hop-sua .hai-o{grid-template-columns:1fr}}
+[hidden]{display:none!important}

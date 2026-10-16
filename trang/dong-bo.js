@@ -93,7 +93,7 @@
     await FB.ghiNhieu([
       { path: 'hinh/' + id, data: { title: String(it.title || 'Hình').slice(0, 150), kind: it.kind === 'basic' ? 'basic' : 'real', grade: grade,
         topic: String(it.topic || '').slice(0, 100), tags: String(it.tags || '').slice(0, 500), description: String(it.description || '').slice(0, 1000),
-        createdAt: (x.moi && x.moi.createdAt) || it.createdAt || bay, updatedAt: bay, dongBo: { idCu: x.cu.id, cu: x.cu.updatedAt, moi: bay } } },
+        createdAt: (x.moi && x.moi.createdAt) || it.createdAt || bay, updatedAt: bay, nhom: (x.moi && x.moi.nhom) || '', dongBo: { idCu: x.cu.id, cu: x.cu.updatedAt, moi: bay } } },
       { path: 'ma/' + id, data: { source: source, v: bay } },
       { path: 'anh/' + id, data: { data: image, v: bay } }
     ]);

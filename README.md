@@ -15,7 +15,7 @@ Chạy hoàn toàn trên trình duyệt: **GitHub Pages + Firebase** (Authentica
 ## Firestore
 | Đường dẫn | Nội dung |
 |---|---|
-| `hinh/{id}` | tên, loại, khối, chủ đề, từ khóa, mô tả, createdAt, updatedAt |
+| `hinh/{id}` | tên, loại, khối, chủ đề, từ khóa, mô tả, nhóm (`nhom`, một cấp), createdAt, updatedAt |
 | `ma/{id}` | `source` (mã TikZ), `v` |
 | `anh/{id}` | `data` (ảnh data URL), `v` = updatedAt khi build |
 | `caiDat/chung` | `macros` |

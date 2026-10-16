@@ -1,5 +1,5 @@
 (async function(){
-  'use strict';var item=Tikz.moi(),image='',builtSource='',busy=false,dirty=false;var fields=['title','kind','grade','topic','tags','description','source'],params=new URLSearchParams(location.search);
+  'use strict';var item=Tikz.moi(),image='',builtSource='',busy=false,dirty=false;var fields=['title','kind','grade','topic','tags','description','nhom','source'],params=new URLSearchParams(location.search);
   function fill(){fields.forEach(function(k){document.getElementById(k).value=item[k]||'';});image=item.image||'';builtSource=item.imageSource||'';paint();}
   function collect(){fields.forEach(function(k){item[k]=document.getElementById(k).value;});return item;}
   function paint(){var preview=document.getElementById('preview'),valid=image&&builtSource===document.getElementById('source').value;preview.replaceChildren();if(valid){var img=document.createElement('img');img.src=image;img.alt=item.title||'Hình TikZ';preview.append(img);}else preview.textContent='Bấm Build hình hoặc F5 để xem mã hiện tại.';document.getElementById('anh').disabled=!valid;document.getElementById('anh-trang-thai').textContent=valid?'Ảnh hiện tại':'Chưa build mã hiện tại';}
@@ -15,6 +15,7 @@
   var viewer=DangNhap.phien()&&DangNhap.phien().vaiTro==='hocsinh';if(viewer){['build','nhap','luu','ai-sua'].forEach(function(id){document.getElementById(id).hidden=true;});fields.forEach(function(k){var el=document.getElementById(k);if(el.tagName==='SELECT')el.disabled=true;else el.readOnly=true;});document.getElementById('tep').disabled=true;}
   var canSave=API.chayThu||DangNhap.phien()&&DangNhap.phien().vaiTro==='admin';if(!canSave){document.getElementById('luu').hidden=true;}else if(API.chayThu)document.getElementById('luu').title='Cần đăng nhập để lưu vào kho';
   window.addEventListener('beforeunload',function(e){if(dirty){e.preventDefault();e.returnValue='';}});
+  Kho.danhSach().then(function(ds){var dl=document.getElementById('ds-nhom');Array.from(new Set(ds.map(function(x){return x.nhom;}).filter(Boolean))).sort().forEach(function(t){var o=document.createElement('option');o.value=t;dl.append(o);});}).catch(function(){});
   try{if(params.get('id')){item=await Kho.doc(params.get('id'));document.getElementById('tieu-de').textContent='Chỉnh sửa mẫu';}else if(params.get('tao')){item=await Kho.docNhap(params.get('tao'));if(!item)throw Error('Không tìm thấy hình vừa tạo.');dirty=true;}if(params.get('loai')==='real')item.kind='real';fill();}catch(e){HienThi.loi(e);fill();}
 })();
 
