@@ -9,6 +9,7 @@ Chạy hoàn toàn trên trình duyệt: **GitHub Pages + Firebase** (Authentica
 - `chung/kho-du-lieu.js` — đọc/ghi kho, build TikZ gọi thẳng tikz-fly, bản nháp IndexedDB.
 - `chung/ai.js` — gọi thẳng Gemini / OpenAI / Claude / DeepSeek; key lưu ở Firestore `caiDat/ai`.
 - `trang/dong-bo.js` — Cài đặt → Đồng bộ 2 chiều với MathTikZ-Pro (Drive + Apps Script).
+- `chung/pic.js` — biến hình trong kho thành `\pic` (Vẽ theo đề: AI chọn mẫu, đặt pic, vẽ thêm yếu tố toán học).
 - `chung/zip.js` — tạo file ZIP trong trình duyệt (tải từng hình hoặc toàn bộ kho).
 
 ## Firestore

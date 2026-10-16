@@ -15,7 +15,10 @@
       var sua=node('button','nut nho nut-sua','Edit');sua.type='button';sua.title='Sửa nhanh: copy mã, sửa mã, đổi tên';sua.setAttribute('aria-label','Sửa nhanh '+(item.title||'hình'));sua.onclick=function(e){e.preventDefault();e.stopPropagation();moSua(item);};
       var zip=node('button','nut nho nut-sua nut-zip','ZIP');zip.type='button';zip.title='Tải ZIP: file .tex và ảnh của hình này';zip.setAttribute('aria-label','Tải ZIP '+(item.title||'hình'));
       zip.onclick=async function(e){e.preventDefault();e.stopPropagation();zip.disabled=true;zip.textContent='…';try{await Kho.taiZipMot(item.id);}catch(x){HienThi.loi(x);}finally{zip.disabled=false;zip.textContent='ZIP';}};
-      khung.append(card,zip,sua);grid.append(khung);
+      var xoaNut=node('button','nut nho nut-sua nut-xoa','Xóa');xoaNut.type='button';xoaNut.title='Xóa hình này khỏi kho';xoaNut.setAttribute('aria-label','Xóa '+(item.title||'hình'));
+      xoaNut.onclick=async function(e){e.preventDefault();e.stopPropagation();if(!confirm('Xóa hẳn hình "'+(item.title||'')+'" khỏi kho? Không hoàn tác được.'))return;xoaNut.disabled=true;xoaNut.textContent='…';try{await Kho.xoa(item.id);items=items.filter(function(x){return x!==item;});render();GiaoDien.thongBao('Đã xóa "'+(item.title||'hình')+'".');}catch(x){HienThi.loi(x);xoaNut.disabled=false;xoaNut.textContent='Xóa';}};
+      if(!coTheLuu(item))xoaNut.hidden=true;
+      khung.append(card,xoaNut,zip,sua);grid.append(khung);
       var observer=new IntersectionObserver(function(entries){if(!entries.some(function(x){return x.isIntersecting;}))return;observer.disconnect();Kho.anh(item).then(function(src){if(current!==generation)return;image.textContent='';if(src){var img=document.createElement('img');img.alt=item.title;img.src=src;image.append(img);}else image.textContent='Chưa có ảnh';}).catch(function(){image.textContent='Không tải được ảnh';});});observer.observe(card);
     });
   }

@@ -155,9 +155,15 @@
     taiZipMot: taiZipMot, taiZipToanBo: taiZipToanBo,
     api: api, danhSach: danhSach, theoDoi: theoDoi, doc: doc, anh: anh, build: build, thuBuild: thuBuild, macro: macro,
     luu: luu, xoa: xoa, nhap: put, docNhap: read,
-    ve: async function (prompt, ids) {
-      var mau = await Promise.all((ids || []).map(async function (id) { var x = await doc(id); return { title: x.title, source: x.source }; }));
-      return AIKetNoi.veTheoDe(prompt, mau);
+    // Dựng hình theo đề: các hình được chọn (ids) thành pic, AI chỉ đặt pic và vẽ yếu tố toán học.
+    ve: async function (de, ids, veMoi) {
+      var daDung = {}, pics = await Promise.all((ids || []).map(async function (id) {
+        var x = await doc(id);
+        return { id: id, name: Pic.ten(x.title, daDung), title: x.title, kind: x.kind, source: x.source, khung: Pic.khung(x.source) };
+      }));
+      var kq = await AIKetNoi.veTheoDe(de, pics, veMoi || []);
+      kq.pics = pics.map(function (p) { return { id: p.id, name: p.name, title: p.title }; });
+      return kq;
     },
     suaMa: function (source, loi) { return AIKetNoi.suaMa(source, loi); },
     tai: function (content, name, type) { var url = URL.createObjectURL(new Blob([content], { type: type })), a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(function () { URL.revokeObjectURL(url); }, 3000); }
