@@ -164,3 +164,11 @@ dialog.hop-sua{width:min(880px,calc(100vw - 32px));max-width:none;border:1px sol
 .qt-bang .trong-bang{text-align:center;color:#8aa0bb;padding:26px}
 @media (max-width:900px){.qt-luoi{grid-template-columns:1fr}.qt-quyen{grid-template-columns:1fr}}
 @media (max-width:600px){.qt-mk{flex-wrap:wrap}.qt-mk .o-nhap{flex-basis:100%}}
+/* Vẽ theo đề: kết quả ngay trên trang */
+.dau-ket-qua{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.dau-ket-qua h2{margin:0}
+#khu-ket-qua .ma-tikz{min-height:420px}
+#khu-ket-qua .xem-truoc{min-height:420px}
+#kq-loi{max-height:220px;overflow:auto;white-space:pre-wrap;color:#f4afb3;background:#2a1d23;border:1px solid #5a3440;border-radius:9px;padding:12px;margin:14px 0 0;font-size:12px}
+.kq-luu{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;gap:12px;align-items:end;margin-top:16px;padding-top:16px;border-top:1px solid #2d3d51}
+.kq-luu label{display:grid;gap:6px;margin:0}.kq-luu .o-nhap,.kq-luu .nut{margin:0}
+@media (max-width:760px){.kq-luu{grid-template-columns:1fr}}

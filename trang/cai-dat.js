@@ -43,6 +43,13 @@
   if(!admin){document.getElementById('phan-ai').hidden=true;}
   else{try{config=await AIUI.read();paint();}catch(e){HienThi.loi(e);}}
   if(chu)try{document.getElementById('macro').value=API.chayThu?localStorage.getItem('mtkweb_macro')||'':(await Kho.api('docCaiDat')).macros;}catch(e){HienThi.loi(e);}
+  (async function quyTac(){
+    var o=document.getElementById('quy-tac'),luu=document.getElementById('luu-quy-tac'),md=document.getElementById('mac-dinh-quy-tac');
+    if(!chu){document.getElementById('phan-quy-tac').hidden=true;return;}
+    try{o.value=await Kho.quyTacVe();}catch(e){HienThi.loi(e);}
+    md.onclick=function(){o.value=window.QUY_TAC_VE_MAC_DINH||'';GiaoDien.thongBao('Đã nạp lại quy tắc mặc định. Bấm Lưu quy tắc để áp dụng.');};
+    luu.onclick=async function(){luu.disabled=true;try{var v=o.value.trim();await Kho.api('luuQuyTacVe',{quyTacVe:v===String(window.QUY_TAC_VE_MAC_DINH||'').trim()?'':v});GiaoDien.thongBao('Đã lưu quy tắc vẽ hình cho AI.');}catch(e){HienThi.loi(e);}finally{luu.disabled=false;}};
+  })();
   document.getElementById('luu-macro').disabled=!chu;document.getElementById('macro').readOnly=!chu;
   document.getElementById('luu-macro').onclick=async function(){var b=this;b.disabled=true;try{var value=document.getElementById('macro').value;if(API.chayThu)localStorage.setItem('mtkweb_macro',value);else await Kho.api('luuCaiDat',{macros:value});GiaoDien.thongBao('Đã lưu macro. Hãy build lại hình khi macro thay đổi.');}catch(e){HienThi.loi(e);}finally{b.disabled=!chu;}};
 })();

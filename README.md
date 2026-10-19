@@ -11,7 +11,8 @@ Chạy hoàn toàn trên trình duyệt: **GitHub Pages + Firebase** (Authentica
 - `chung/kho-du-lieu.js` — đọc/ghi kho, build TikZ gọi thẳng tikz-fly, bản nháp IndexedDB.
 - `chung/ai.js` — gọi thẳng Gemini / OpenAI / Claude / DeepSeek; key của chủ kho ở `caiDat/ai`, key riêng của thành viên ở `aiRieng/{uid}`.
 - `trang/dong-bo.js` — Cài đặt → Đồng bộ 2 chiều với MathTikZ-Pro (Drive + Apps Script).
-- `chung/pic.js` — biến hình trong kho thành `\pic` (Vẽ theo đề: AI chọn mẫu, đặt pic, vẽ thêm yếu tố toán học).
+- `chung/pic.js` — biến hình trong kho thành `\pic` (Vẽ theo đề: AI chọn mẫu, đặt pic, vẽ thêm yếu tố toán học, build và sửa ngay trên trang).
+- `chung/quy-tac-ve.js` — quy tắc vẽ hình mặc định cho AI (theo chuẩn hóa LaTeX Toán: TikZ thuần, dựng điểm bằng phép biến hình, nhãn theo góc). Chủ kho sửa trong Cài đặt.
 - `chung/zip.js` — tạo file ZIP trong trình duyệt (tải từng hình hoặc toàn bộ kho).
 
 ## Firestore
@@ -20,7 +21,7 @@ Chạy hoàn toàn trên trình duyệt: **GitHub Pages + Firebase** (Authentica
 | `hinh/{id}` | tên, loại, khối, chủ đề, từ khóa, mô tả, nhóm (`nhom`, một cấp), createdAt, updatedAt |
 | `ma/{id}` | `source` (mã TikZ), `v` |
 | `anh/{id}` | `data` (ảnh data URL), `v` = updatedAt khi build |
-| `caiDat/chung` | `macros` |
+| `caiDat/chung` | `macros`, `quyTacVe` (để trống = dùng quy tắc mặc định) |
 | `caiDat/ai` | hãng đang dùng, Base URL, model, API key |
 | `caiDat/dongBo` | mốc đồng bộ với MathTikZ-Pro: macro, hình đã xóa, lần cuối |
 | `nguoiDung/{uid}` | email, hoTen, `quyen {xem, tai, ai, sua}`, khoa, daXoa, taoLuc, lanCuoi |

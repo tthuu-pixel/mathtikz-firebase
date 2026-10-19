@@ -21,8 +21,11 @@
   async function san() { await DangNhap.sanSang(); return window.FB; }
 
   /* ---------- Macro chung ---------- */
-  var macroCache = null;
-  async function macro() { if (macroCache !== null) return macroCache; var FB = await san(); var d = await FB.get('caiDat/chung'); return (macroCache = (d && d.macros) || ''); }
+  var chungCache = null;
+  async function chung() { if (chungCache) return chungCache; var FB = await san(); return (chungCache = (await FB.get('caiDat/chung')) || {}); }
+  async function macro() { return (await chung()).macros || ''; }
+  // Quy tắc vẽ hình gửi cho AI (Vẽ theo đề): chủ kho sửa trong Cài đặt, để trống thì dùng mặc định.
+  async function quyTacVe() { var q = (await chung()).quyTacVe; return q && q.trim() ? q : window.QUY_TAC_VE_MAC_DINH || ''; }
 
   /* ---------- Build TikZ (trình duyệt gọi thẳng dịch vụ) ---------- */
   async function thuBuild(source) {
@@ -118,7 +121,11 @@
       case 'docCaiDat': return { ok: true, macros: await macro() };
       case 'luuCaiDat': {
         if (typeof data.macros !== 'string' || data.macros.length > 10000) throw Error('Macro quá dài (tối đa 10.000 ký tự).');
-        var FB = await san(); await FB.set('caiDat/chung', { macros: data.macros }, true); macroCache = data.macros; return { ok: true };
+        var FB = await san(); await FB.set('caiDat/chung', { macros: data.macros }, true); (await chung()).macros = data.macros; return { ok: true };
+      }
+      case 'luuQuyTacVe': {
+        if (typeof data.quyTacVe !== 'string' || data.quyTacVe.length > 20000) throw Error('Quy tắc vẽ quá dài (tối đa 20.000 ký tự).');
+        var FB2 = await san(); await FB2.set('caiDat/chung', { quyTacVe: data.quyTacVe }, true); (await chung()).quyTacVe = data.quyTacVe; return { ok: true };
       }
     }
     throw Error('Hành động không hợp lệ: ' + action);
@@ -173,7 +180,7 @@
   window.Kho = {
     taiZipMot: taiZipMot, taiZipToanBo: taiZipToanBo, taiZipNhom: function (ten, tienDo) { return taiZipToanBo(tienDo, ten); },
     chuanNhom: chuanNhom, datNhom: datNhom, doiTenNhom: doiTenNhom,
-    api: api, danhSach: danhSach, theoDoi: theoDoi, doc: doc, anh: anh, build: build, thuBuild: thuBuild, macro: macro,
+    api: api, danhSach: danhSach, theoDoi: theoDoi, doc: doc, anh: anh, build: build, thuBuild: thuBuild, macro: macro, quyTacVe: quyTacVe,
     luu: luu, xoa: xoa, nhap: put, docNhap: read,
     // Dựng hình theo đề: các hình được chọn (ids) thành pic, AI chỉ đặt pic và vẽ yếu tố toán học.
     ve: async function (de, ids, veMoi) {
@@ -183,9 +190,10 @@
       }));
       var kq = await AIKetNoi.veTheoDe(de, pics, veMoi || []);
       kq.pics = pics.map(function (p) { return { id: p.id, name: p.name, title: p.title }; });
+      kq.dinhNghia = pics.map(function (p) { return { name: p.name, def: Pic.dinhNghia(p.name, p.source) }; });
       return kq;
     },
-    suaMa: function (source, loi) { return AIKetNoi.suaMa(source, loi); },
+    suaMa: function (source, loi, quyTac) { return AIKetNoi.suaMa(source, loi, quyTac); },
     tai: function (content, name, type) { var url = URL.createObjectURL(new Blob([content], { type: type })), a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(function () { URL.revokeObjectURL(url); }, 3000); }
   };
 })();

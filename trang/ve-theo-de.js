@@ -97,39 +97,104 @@
     });
   };
 
-  $('ve').onclick = async function () {
-    var de = $('de').value.trim(), nut = this;
+  /* ---------- 3. Hình vẽ: build và sửa ngay trên trang ---------- */
+  var kq = null, anh = '', maAnh = '', maTruocAI = null, idDaLuu = '', ban = false;
+  function ma() { return $('kq-ma').value; }
+  function baoKQ(t) { $('kq-trang-thai').textContent = t || ''; }
+  function baoLoiBuild(t) { $('kq-loi').textContent = t || ''; $('kq-loi').hidden = !t; }
+  function paint() {
+    var xem = $('kq-xem'), dung = !!anh && maAnh === ma(); xem.replaceChildren();
+    if (dung) { var img = node('img'); img.src = anh; img.alt = 'Hình vẽ theo đề'; xem.append(img); }
+    else xem.textContent = anh ? 'Mã đã thay đổi. Bấm Build hình (F5) để xem lại.' : 'Chưa có ảnh.';
+    $('kq-anh').disabled = !dung; $('kq-anh-tt').textContent = dung ? 'Ảnh của mã hiện tại' : 'Chưa build mã hiện tại';
+  }
+  function khoaKQ(v) {
+    ban = v; ['kq-build', 'kq-ai-sua', 'kq-hoan-tac', 'kq-ve-lai', 'kq-luu'].forEach(function (id) { $(id).disabled = v; });
+    $('kq-ma').readOnly = v; $('ve').disabled = v || thanhPhan.some(function (t) { return t.canChon; }); $('phan-tich').disabled = v;
+  }
+  function datMa(source) { $('kq-ma').value = source; paint(); }
+  // AI sửa mã đôi khi làm rơi định nghĩa pic lấy từ kho: chèn lại những pic còn được gọi mà thiếu định nghĩa.
+  function giuPic(source) {
+    var thieu = (kq && kq.dinhNghia || []).filter(function (d) { return source.indexOf('{' + d.name + '}') >= 0 && !new RegExp(d.name + '\\s*/\\.pic').test(source); });
+    return thieu.length ? Pic.chen(source, thieu.map(function (d) { return d.def; })) : source;
+  }
+  // Build mã hiện tại; lỗi thì (nếu tuSua) cho AI sửa theo quy tắc vẽ, tối đa 2 lần.
+  async function build(tuSua) {
+    var source = ma(), quyTac = await Kho.quyTacVe();
+    baoLoiBuild(''); baoKQ('Đang build…'); $('kq-xem').textContent = 'Đang build hình…';
+    var thu = await Kho.thuBuild(source);
+    if (thu.ok) { anh = thu.image; maAnh = source; paint(); baoKQ('Build thành công'); return true; }
+    var loi = thu.loi;
+    if (tuSua) {
+      for (var lan = 1; lan <= 2; lan++) {
+        baoKQ('Build lỗi · AI đang sửa mã (lần ' + lan + '/2)…'); $('kq-xem').textContent = 'AI đang đọc lỗi và sửa mã…';
+        var sua = await AIKetNoi.suaMa(source, loi, quyTac);
+        if (sua.khongLoi) { anh = sua.image; maAnh = source; paint(); baoKQ('Build thành công'); return true; }
+        if (maTruocAI === null) maTruocAI = source;
+        source = giuPic(sua.source); datMa(source); $('kq-hoan-tac').hidden = false;
+        if (source !== sua.source) { var lai = await Kho.thuBuild(source); sua = { daBuild: lai.ok, image: lai.image, loiBuild: lai.loi }; }
+        if (sua.daBuild) { anh = sua.image; maAnh = source; paint(); baoKQ('AI đã sửa, build thành công'); return true; }
+        loi = sua.loiBuild || loi;
+      }
+    }
+    paint(); baoKQ('Build lỗi'); baoLoiBuild('Lỗi biên dịch:\n' + loi);
+    return false;
+  }
+  async function veHinh() {
+    var de = $('de').value.trim();
     if (!de) { HienThi.loi(Error('Nhập đề bài trước.')); return; }
     var ids = [], veMoi = [];
     thanhPhan.forEach(function (t) { if (t.chon) { if (ids.indexOf(t.chon) < 0) ids.push(t.chon); } else if (t.vaiTro === 'vat-the') veMoi.push(t.ten); });
-    HienThi.xoaLoi(); dangBan = true; nut.disabled = true; $('phan-tich').disabled = true;
+    HienThi.xoaLoi(); dangBan = true; khoaKQ(true);
+    var tin = '';
     try {
-      baoVe('AI đang dựng hình từ ' + ids.length + ' mẫu…');
-      var kq = await Kho.ve(de, ids, veMoi), source = kq.source, image = '', imageSource = '';
-      baoVe('Đang build thử…');
-      var thu = await Kho.thuBuild(source);
-      if (thu.ok) { image = thu.image; imageSource = source; }
-      else {
-        baoVe('Build lỗi, AI đang sửa mã…');
-        try { var sua = await AIKetNoi.suaMa(source, thu.loi); source = sua.source; if (sua.daBuild || sua.khongLoi) { image = sua.image; imageSource = source; } } catch (e) {}
-      }
-      var dung = ids.map(function (id) { return theoId[id]; });
-      var draft = Object.assign(Tikz.moi(), {
-        source: source, image: image, imageSource: imageSource, title: de.replace(/\s+/g, ' ').slice(0, 80), description: de,
+      baoVe('AI đang dựng hình' + (ids.length ? ' từ ' + ids.length + ' mẫu' : '') + '…');
+      kq = await Kho.ve(de, ids, veMoi); kq.de = de; kq.ids = ids;
+      anh = ''; maAnh = ''; maTruocAI = null; idDaLuu = ''; $('kq-hoan-tac').hidden = true;
+      datMa(kq.source); $('kq-pic').textContent = kq.pics.length ? 'pic: ' + kq.pics.map(function (p) { return p.name; }).join(', ') : '';
+      $('kq-ten').value = de.replace(/\s+/g, ' ').slice(0, 80);
+      $('khu-ket-qua').hidden = false; $('khu-ket-qua').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      baoVe('Đã vẽ xong, đang build…');
+      var ok = await build(true);
+      tin = ok ? 'Đã vẽ và build xong.' : 'Đã vẽ xong nhưng mã còn lỗi biên dịch.';
+    } catch (e) { HienThi.loi(e); baoVe(''); baoKQ(''); paint(); }
+    finally { dangBan = false; khoaKQ(false); veDanhSach(); if (tin) baoVe(tin); }
+  }
+  async function chay(fn) { if (ban) return; HienThi.xoaLoi(); khoaKQ(true); try { await fn(); } catch (e) { HienThi.loi(e); baoKQ(''); paint(); } finally { khoaKQ(false); } }
+  $('ve').onclick = veHinh;
+  $('kq-ve-lai').onclick = function () { if (!ban) veHinh(); };
+  $('kq-build').onclick = function () { chay(function () { return build(false); }); };
+  $('kq-ai-sua').onclick = function () { chay(function () { return build(true); }); };
+  $('kq-hoan-tac').onclick = function () { if (ban || maTruocAI === null) return; datMa(maTruocAI); maTruocAI = null; this.hidden = true; baoLoiBuild(''); baoKQ('Đã khôi phục mã trước khi AI sửa'); };
+  $('kq-ma').addEventListener('input', function () { paint(); baoKQ('Có thay đổi, chưa build'); });
+  window.addEventListener('keydown', function (e) { if (e.key === 'F5' && !$('khu-ket-qua').hidden) { e.preventDefault(); $('kq-build').click(); } });
+  $('kq-copy').onclick = async function () { try { await navigator.clipboard.writeText(ma()); GiaoDien.thongBao('Đã copy mã.'); } catch (e) { $('kq-ma').select(); GiaoDien.thongBao('Hãy bấm Ctrl+C để copy.', 'loi'); } };
+  function tenTep() { return Tikz.ten($('kq-ten').value || 'hinh-theo-de', idDaLuu || String(Date.now())); }
+  $('kq-tex').onclick = function () { Kho.tai(ma(), tenTep() + '.tex', 'text/plain;charset=utf-8'); };
+  $('kq-anh').onclick = async function () { var blob = await (await fetch(anh)).blob(), duoi = { 'image/svg+xml': 'svg', 'image/jpeg': 'jpg', 'image/webp': 'webp' }[blob.type] || 'png'; Kho.tai(blob, tenTep() + '.' + duoi, blob.type); };
+  $('kq-luu').onclick = function () {
+    chay(async function () {
+      var ten = $('kq-ten').value.trim(); if (!ten) throw Error('Nhập tên hình trước khi lưu.');
+      var dung = (kq && kq.ids || []).map(function (id) { return theoId[id]; }).filter(Boolean), source = ma();
+      baoKQ('Đang lưu vào kho…');
+      var item = Object.assign(Tikz.moi(), {
+        id: idDaLuu || Tikz.moi().id, title: ten, nhom: $('kq-nhom').value, source: source, description: (kq && kq.de || '').slice(0, 1000),
+        image: maAnh === source ? anh : '', imageSource: maAnh === source ? source : '',
         kind: dung.some(function (x) { return x.kind === 'real'; }) || !dung.length ? 'real' : 'basic',
         grade: (dung.filter(function (x) { return x.grade; })[0] || {}).grade || '', topic: (dung[0] || {}).topic || '',
-        tags: kq.pics.map(function (p) { return p.name; }).join(', ')
+        tags: (kq && kq.pics || []).map(function (p) { return p.name; }).join(', ')
       });
-      draft.id = 'nhap-' + draft.id;
-      await Kho.nhap(draft);
-      location.href = 'them-mau.html?tao=' + encodeURIComponent(draft.id);
-    } catch (e) { HienThi.loi(e); baoVe(''); }
-    finally { dangBan = false; $('phan-tich').disabled = false; veDanhSach(); }
+      var lanDau = !idDaLuu, daLuu = await Kho.luu(item); idDaLuu = daLuu.id;
+      if (daLuu.image) { anh = daLuu.image; maAnh = source; paint(); }
+      baoKQ('Đã lưu vào kho'); GiaoDien.thongBao(lanDau ? 'Đã lưu hình vào kho.' : 'Đã cập nhật hình trong kho.');
+    });
   };
+  if (DangNhap.co('sua')) $('kq-luu-khu').hidden = false;
 
   try {
     items = (await Kho.danhSach()).filter(function (x) { return String(x.id).indexOf('nhap-') !== 0; });
     items.forEach(function (x) { theoId[x.id] = x; });
+    var dl = $('ds-nhom'); Array.from(new Set(items.map(function (x) { return x.nhom; }).filter(Boolean))).sort().forEach(function (t) { var o = document.createElement('option'); o.value = t; dl.append(o); });
     baoPT(items.length + ' hình trong kho sẵn sàng làm mẫu.');
   } catch (e) { HienThi.loi(e); }
 })();

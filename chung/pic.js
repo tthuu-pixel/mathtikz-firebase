@@ -41,7 +41,7 @@
   function chen(source, defs) {
     var pure = Tikz.tach(source), m = /^\\begin\{tikzpicture\}\s*/.exec(pure), i = m[0].length;
     if (pure[i] === '[') { var sau = 1, j = i + 1; while (j < pure.length && sau) { if (pure[j] === '[') sau++; else if (pure[j] === ']') sau--; j++; } i = j; }
-    return pure.slice(0, i).replace(/\s+$/, '') + '\n% ===== Mẫu lấy từ kho (pic) =====\n' + defs.join('\n') + '\n% ===== Hình theo đề =====\n' + pure.slice(i).replace(/^[ \t]*\n?/, '');
+    return pure.slice(0, i).replace(/\s+$/, '') + '\n' + defs.join('\n') + '\n' + pure.slice(i).replace(/^[ \t]*\n?/, '');
   }
   window.Pic = { ten: ten, tach: tach, dinhNghia: dinhNghia, khung: khung, chen: chen };
 })();
