@@ -1,5 +1,5 @@
 (async function(){
-  'use strict';var admin=(DangNhap.phien()||{}).vaiTro==='admin',config,el=document.getElementById('ai-cards');
+  'use strict';var admin=DangNhap.co('ai'),chu=DangNhap.laChu(),config,el=document.getElementById('ai-cards');
   function node(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text)e.textContent=text;return e;}
   function field(label,control){var e=node('label','',label);e.append(control);return e;}
   function input(type,value){var e=node('input','o-nhap');e.type=type;e.value=value||'';return e;}
@@ -27,8 +27,22 @@
   }
   document.getElementById('ai-active').disabled=!admin;
   document.getElementById('luu-ai-active').onclick=async function(){var b=this;b.disabled=true;try{config=await AIUI.save({active:document.getElementById('ai-active').value});GiaoDien.thongBao('Đã chọn AI dùng cho quét và vẽ theo đề.');}catch(e){HienThi.loi(e);}finally{b.disabled=!admin;}};
-  try{config=await AIUI.read();paint();}catch(e){HienThi.loi(e);}
-  try{document.getElementById('macro').value=API.chayThu?localStorage.getItem('mtkweb_macro')||'':(await Kho.api('docCaiDat')).macros;}catch(e){HienThi.loi(e);}
-  document.getElementById('luu-macro').disabled=!admin;document.getElementById('macro').readOnly=!admin;
-  document.getElementById('luu-macro').onclick=async function(){var b=this;b.disabled=true;try{var value=document.getElementById('macro').value;if(API.chayThu)localStorage.setItem('mtkweb_macro',value);else await Kho.api('luuCaiDat',{macros:value});GiaoDien.thongBao('Đã lưu macro. Hãy build lại hình khi macro thay đổi.');}catch(e){HienThi.loi(e);}finally{b.disabled=!admin;}};
+  (function taiKhoan(){
+    var p=DangNhap.phien()||{},ten={xem:'Xem',tai:'Tải',ai:'AI',sua:'Sửa kho'},q=document.getElementById('tk-quyen');
+    document.getElementById('tk-thong-tin').textContent=(p.hoTen&&p.hoTen!==p.ten?p.hoTen+' · ':'')+(p.ten||'')+' · '+(chu?'Chủ kho (đăng nhập Google, có mọi quyền)':'Thành viên');
+    Object.keys(ten).forEach(function(k){q.append(node('span','nhan '+(DangNhap.co(k)?'co-quyen':'khong-quyen'),(DangNhap.co(k)?'✓ ':'✗ ')+ten[k]));});
+    if(chu)return;var f=document.getElementById('doi-mk');f.hidden=false;document.getElementById('mk-ten').value=p.ten||'';
+    f.onsubmit=async function(e){e.preventDefault();var b=document.getElementById('mk-luu'),cu=document.getElementById('mk-cu').value,moi=document.getElementById('mk-moi').value;HienThi.xoaLoi();
+      if(moi!==document.getElementById('mk-lai').value){HienThi.loi(Error('Hai lần nhập mật khẩu mới chưa khớp.'));return;}
+      if(moi.length<8){HienThi.loi(Error('Mật khẩu mới cần ít nhất 8 ký tự.'));return;}
+      b.disabled=true;try{await (await window.FBSanSang).doiMatKhau(cu,moi);f.reset();document.getElementById('mk-ten').value=p.ten||'';GiaoDien.thongBao('Đã đổi mật khẩu.');}
+      catch(x){var m=x&&x.code||'';HienThi.loi(Error(m==='auth/invalid-credential'||m==='auth/wrong-password'?'Mật khẩu hiện tại không đúng.':m==='auth/weak-password'?'Mật khẩu mới quá yếu.':m==='auth/too-many-requests'?'Thử sai quá nhiều lần, hãy đợi vài phút.':(x.message||String(x))));}
+      finally{b.disabled=false;}};
+  })();
+  if(!chu){document.getElementById('phan-macro').hidden=true;document.getElementById('ai-ghi-chu').textContent='Đây là key riêng của bạn: lưu trong Firestore, chỉ tài khoản của bạn đọc được (kể cả chủ kho cũng không xem được); trình duyệt gọi thẳng hãng AI.';}
+  if(!admin){document.getElementById('phan-ai').hidden=true;}
+  else{try{config=await AIUI.read();paint();}catch(e){HienThi.loi(e);}}
+  if(chu)try{document.getElementById('macro').value=API.chayThu?localStorage.getItem('mtkweb_macro')||'':(await Kho.api('docCaiDat')).macros;}catch(e){HienThi.loi(e);}
+  document.getElementById('luu-macro').disabled=!chu;document.getElementById('macro').readOnly=!chu;
+  document.getElementById('luu-macro').onclick=async function(){var b=this;b.disabled=true;try{var value=document.getElementById('macro').value;if(API.chayThu)localStorage.setItem('mtkweb_macro',value);else await Kho.api('luuCaiDat',{macros:value});GiaoDien.thongBao('Đã lưu macro. Hãy build lại hình khi macro thay đổi.');}catch(e){HienThi.loi(e);}finally{b.disabled=!chu;}};
 })();

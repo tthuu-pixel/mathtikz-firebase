@@ -1,0 +1,22 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Quản trị tài khoản · MATHTIKZ</title><link rel="icon" href="favicon.svg"><link rel="stylesheet" href="chung/giao-dien.css"><link rel="stylesheet" href="chung/web.css"><link rel="stylesheet" href="chung/theme.css"><script src="chung/cau-hinh.js"></script><script type="module" src="chung/fb.js"></script><script src="chung/dang-nhap.js"></script></head><body data-trang="quan-tri"><header id="thanh-tren"></header><div class="bo-cuc"><aside class="menu-trai"><strong>KHÔNG GIAN CỦA BẠN</strong><nav id="menu"></nav><div id="trang-thai-kho"></div></aside><main class="noi-dung"><div id="loi" hidden role="alert"></div>
+<div class="dau-trang"><div><h1>Quản trị tài khoản</h1><p class="phu">Tạo tài khoản email + mật khẩu cho người dùng và bật/tắt từng quyền. Thay đổi quyền có hiệu lực ngay.</p></div></div>
+<section class="the-trang qt-tao"><h2>Thêm tài khoản</h2>
+<form id="tao" autocomplete="off"><div class="qt-luoi">
+<label>Email đăng nhập<input class="o-nhap" id="tao-email" type="email" required placeholder="ten@gmail.com"></label>
+<label>Họ tên<input class="o-nhap" id="tao-ten" maxlength="80" placeholder="Ví dụ: Cô Lan – Tổ Toán"></label>
+<label>Mật khẩu ban đầu<span class="qt-mk"><input class="o-nhap" id="tao-mk" type="text" minlength="8" maxlength="64" required spellcheck="false"><button class="nut nho" type="button" id="tao-ngau-nhien">Tạo ngẫu nhiên</button></span></label>
+</div>
+<fieldset class="qt-quyen"><legend>Quyền</legend>
+<label class="check-line"><input type="checkbox" data-q="xem" checked> <span><b>Xem</b> · xem ảnh hình trong kho</span></label>
+<label class="check-line"><input type="checkbox" data-q="tai" checked> <span><b>Tải</b> · mở, copy mã và tải ZIP</span></label>
+<label class="check-line"><input type="checkbox" data-q="ai"> <span><b>AI</b> · AI sửa mã, vẽ theo đề (tự nhập key riêng)</span></label>
+<label class="check-line"><input type="checkbox" data-q="sua"> <span><b>Sửa kho</b> · thêm, sửa, xóa, xếp nhóm</span></label>
+</fieldset>
+<div class="hang-nut"><button class="nut chinh" id="tao-gui" type="submit">Tạo tài khoản</button></div></form>
+<div class="qt-xong" id="xong" hidden><b>Đã tạo tài khoản.</b> Gửi thông tin này cho người dùng (mật khẩu chỉ hiện một lần):<pre id="xong-nd"></pre><div class="hang-nut"><button class="nut nho" type="button" id="xong-copy">Copy thông tin</button><button class="nut nho" type="button" id="xong-dong">Đóng</button></div></div>
+</section>
+<section class="the-trang" style="margin-top:20px"><div class="qt-dau"><h2>Danh sách tài khoản <span class="nhan" id="so-tk">0</span></h2><input class="o-nhap" id="tim" placeholder="Tìm email hoặc tên…" aria-label="Tìm tài khoản"></div>
+<div class="qt-bang-boc"><table class="qt-bang"><thead><tr><th>Tài khoản</th><th title="Xem ảnh hình">Xem</th><th title="Mở mã, tải ZIP">Tải</th><th title="Dùng AI (key riêng)">AI</th><th title="Thêm, sửa, xóa">Sửa kho</th><th>Trạng thái</th><th>Lần cuối vào</th><th></th></tr></thead><tbody id="ds"></tbody></table></div>
+<p class="mo">Chủ kho (<span id="email-chu"></span>) luôn có mọi quyền và không nằm trong danh sách. "Xóa" chỉ gỡ quyền vào kho; muốn xóa hẳn tài khoản đăng nhập, vào Firebase → Authentication → Users. Tạo lại cùng email sẽ khôi phục tài khoản đã xóa.</p>
+</section>
+</main></div><script src="chung/khung-web.js"></script><script src="trang/quan-tri.js"></script></body></html>

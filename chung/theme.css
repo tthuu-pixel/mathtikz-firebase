@@ -127,3 +127,40 @@ dialog.hop-sua{width:min(880px,calc(100vw - 32px));max-width:none;border:1px sol
 .hop-sua .hai-o{display:grid;grid-template-columns:2fr 1fr;gap:12px}
 @media(max-width:650px){.hop-sua .hai-o{grid-template-columns:1fr}}
 [hidden]{display:none!important}
+
+/* Đăng nhập email + mật khẩu */
+.form-dn .form-mk{max-width:none;background:none;border:0;padding:0;box-shadow:none;display:grid;gap:0}
+.form-dn .form-mk label{display:grid;gap:7px;margin:0 0 16px}
+.form-dn .form-mk #dn-mk{min-height:48px;font-size:15px;width:100%}
+.lien-ket{background:none;border:0;color:#8cc4ee;cursor:pointer;font:inherit;font-size:13px;padding:10px 0 0;justify-self:end;text-decoration:underline}
+.vach-hoac{display:flex;align-items:center;gap:12px;color:#6f86a2;font-size:12px;margin:22px 0 4px;letter-spacing:1px;text-transform:uppercase}
+.vach-hoac:before,.vach-hoac:after{content:"";flex:1;height:1px;background:#2d3d51}
+#bao{background:#1f3a33;color:#a9e1c8;border:1px solid #2f5a4c;padding:13px;border-radius:9px;margin:14px 0;font-size:14px}
+/* Quyền */
+.ds-quyen{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+.nhan.co-quyen{background:#1f3a33;color:#a9e1c8}.nhan.khong-quyen{background:#2a2f38;color:#7f8ea3}
+.mau.chi-xem{cursor:default}
+#doi-mk h3{margin:18px 0 10px;font-size:16px}
+/* Quản trị tài khoản */
+.qt-luoi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.qt-luoi label{display:grid;gap:6px;margin:0}
+.qt-mk{display:flex;gap:8px;align-items:center}.qt-mk .o-nhap{flex:1;min-width:0;margin:0;font-family:Consolas,ui-monospace,monospace}.qt-mk .nut{margin:0;flex:none;white-space:nowrap}
+.qt-quyen{border:1px solid #2d3d51;border-radius:10px;padding:10px 16px 12px;margin:16px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 18px}
+.qt-quyen legend{padding:0 6px;color:#9fb3cf;font-size:13px}
+.qt-quyen .check-line{font-weight:400;font-size:14px}
+.qt-xong{margin-top:16px;background:#1f3a33;border:1px solid #2f5a4c;color:#c9eedd;border-radius:10px;padding:14px}
+.qt-xong pre{background:#142a24;border-radius:8px;padding:12px;margin:10px 0 0;white-space:pre-wrap;user-select:all;font-size:13px}
+.qt-dau{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}.qt-dau h2{margin:0}.qt-dau .o-nhap{width:260px;max-width:100%;margin:0}
+.qt-bang-boc{overflow-x:auto;margin-top:14px;border:1px solid #2d3d51;border-radius:10px}
+.qt-bang{width:100%;border-collapse:collapse;font-size:14px;min-width:820px}
+.qt-bang th{background:#1b2a3d;color:#9fb3cf;font-weight:600;text-align:left;padding:10px 12px;font-size:13px;white-space:nowrap}
+.qt-bang td{padding:10px 12px;border-top:1px solid #26354a;vertical-align:middle}
+.qt-bang td.q{text-align:center;width:64px}.qt-bang th:nth-child(n+2):nth-child(-n+5){text-align:center}
+.qt-bang input[type=checkbox]{width:18px;height:18px;accent-color:#5aa9e6;cursor:pointer}
+.qt-bang .ten-tk b{display:block;color:#e2ebf6}.qt-bang .ten-tk small{color:#8aa0bb}
+.qt-bang tr.bi-khoa td{opacity:.6}.qt-bang tr.bi-khoa td:last-child,.qt-bang tr.bi-khoa td:nth-child(6){opacity:1}
+.qt-bang .tt{font-size:12px;border-radius:5px;padding:3px 8px;white-space:nowrap}.tt.mo-tk{background:#1f3a33;color:#a9e1c8}.tt.khoa-tk{background:#493c2c;color:#e2c39a}
+.qt-bang .thao-tac{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}.qt-bang .thao-tac .nut{margin:0;width:auto}
+.qt-bang .trong-bang{text-align:center;color:#8aa0bb;padding:26px}
+@media (max-width:900px){.qt-luoi{grid-template-columns:1fr}.qt-quyen{grid-template-columns:1fr}}
+@media (max-width:600px){.qt-mk{flex-wrap:wrap}.qt-mk .o-nhap{flex-basis:100%}}

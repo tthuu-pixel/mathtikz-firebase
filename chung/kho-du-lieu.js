@@ -8,8 +8,11 @@
   /* ---------- Bản nháp trên máy (IndexedDB) ---------- */
   var promise;
   function db() { if (!promise) promise = new Promise(function (ok, no) { var r = indexedDB.open('mathtikz-static', 1); r.onupgradeneeded = function () { r.result.createObjectStore('samples', { keyPath: 'id' }); }; r.onsuccess = function () { ok(r.result); }; r.onerror = function () { no(r.error); }; }); return promise; }
-  function read(id) { return db().then(function (d) { return new Promise(function (ok, no) { var r = d.transaction('samples').objectStore('samples')[id ? 'get' : 'getAll'](id); r.onsuccess = function () { ok(r.result); }; r.onerror = function () { no(r.error); }; }); }); }
-  function put(item) { return db().then(function (d) { return new Promise(function (ok, no) { var t = d.transaction('samples', 'readwrite'); t.objectStore('samples').put(item); t.oncomplete = function () { ok(item); }; t.onerror = function () { no(t.error); }; t.onabort = function () { no(t.error || Error('Không lưu được bản nháp.')); }; }); }); }
+  // Mỗi bản nháp gắn uid người tạo, để nhiều tài khoản dùng chung một máy không thấy nháp của nhau.
+  function toi() { var p = DangNhap.phien(); return p ? p.uid : ''; }
+  function cuaToi(x) { return !!x && (x.cuaAi ? x.cuaAi === toi() : DangNhap.laChu()); }
+  function read(id) { return db().then(function (d) { return new Promise(function (ok, no) { var r = d.transaction('samples').objectStore('samples')[id ? 'get' : 'getAll'](id); r.onsuccess = function () { var kq = r.result; ok(id ? (cuaToi(kq) ? kq : undefined) : (kq || []).filter(cuaToi)); }; r.onerror = function () { no(r.error); }; }); }); }
+  function put(item) { item = Object.assign({}, item, { cuaAi: toi() }); return db().then(function (d) { return new Promise(function (ok, no) { var t = d.transaction('samples', 'readwrite'); t.objectStore('samples').put(item); t.oncomplete = function () { ok(item); }; t.onerror = function () { no(t.error); }; t.onabort = function () { no(t.error || Error('Không lưu được bản nháp.')); }; }); }); }
   function xoaNhap(id) { return db().then(function (d) { return new Promise(function (ok) { var t = d.transaction('samples', 'readwrite'); t.objectStore('samples').delete(id); t.oncomplete = function () { ok(); }; t.onerror = function () { ok(); }; }); }); }
   function chuanNhom(s) { return String(s || '').replace(/\s+/g, ' ').trim().slice(0, 60); }
   function laNhap(id) { return String(id || '').indexOf('nhap-') === 0; }

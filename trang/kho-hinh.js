@@ -1,12 +1,12 @@
 (async function(){
   'use strict';
   var items=[],real=document.body.dataset.trang==='thuc-te',generation=0;
-  var phien=DangNhap.phien()||{},laAdmin=phien.vaiTro==='admin',laHocSinh=phien.vaiTro==='hocsinh';
+  var coSua=DangNhap.co('sua'),coTai=DangNhap.co('tai');
   var nhomMo=new URLSearchParams(location.search).get('nhom')||'',dangChon=false,daChon=new Set();
   function node(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text)e.textContent=text;return e;}
   function $id(id){return document.getElementById(id);}
   function laNhap(item){return String(item.id||'').indexOf('nhap-')===0;}
-  function coTheLuu(item){return !laHocSinh&&(laNhap(item)||laAdmin||API.chayThu);}
+  function coTheLuu(item){return laNhap(item)||coSua;}
   function moiThem(a,b){return String(b.createdAt||b.updatedAt||'').localeCompare(String(a.createdAt||a.updatedAt||''));}
 
   /* ---------- Ảnh: tải khi thẻ hiện trên màn hình ---------- */
@@ -18,7 +18,7 @@
 
   /* ---------- Thẻ một hình ---------- */
   function theHinh(item,current,hienNhom){
-    var khung=node('div','mau-khung'+(daChon.has(item.id)?' da-chon':'')),card=node('a','mau');card.href='them-mau.html?id='+encodeURIComponent(item.id);
+    var khung=node('div','mau-khung'+(daChon.has(item.id)?' da-chon':'')),card=node('a','mau');card.href='them-mau.html?id='+encodeURIComponent(item.id);if(!coTai&&!laNhap(item)){card.classList.add('chi-xem');card.title='Tài khoản của bạn chỉ có quyền xem hình';card.onclick=function(e){e.preventDefault();GiaoDien.thongBao('Bạn chỉ có quyền xem. Cần quyền Tải để mở mã hình.');};}
     var image=node('div','anh-mau','Đang tải ảnh…'),info=node('div','thong-tin');
     info.append(node('h3','',item.title),node('span','nhan',(item.kind==='real'?'Thực tế':'Toán cơ bản')+(item.grade?' · Khối '+item.grade:'')));
     if(hienNhom&&item.nhom){info.append(' ');info.append(node('span','nhan nhan-nhom','Nhóm: '+item.nhom));}
@@ -34,6 +34,7 @@
     var xoaNut=node('button','nut nho nut-sua nut-xoa','Xóa');xoaNut.type='button';xoaNut.title='Xóa hình này khỏi kho';xoaNut.setAttribute('aria-label','Xóa '+(item.title||'hình'));
     xoaNut.onclick=async function(e){e.preventDefault();e.stopPropagation();if(!confirm('Xóa hẳn hình "'+(item.title||'')+'" khỏi kho? Không hoàn tác được.'))return;xoaNut.disabled=true;xoaNut.textContent='…';try{await Kho.xoa(item.id);items=items.filter(function(x){return x!==item;});render();GiaoDien.thongBao('Đã xóa "'+(item.title||'hình')+'".');}catch(x){HienThi.loi(x);xoaNut.disabled=false;xoaNut.textContent='Xóa';}};
     if(!coTheLuu(item))xoaNut.hidden=true;
+    if(!coTai&&!laNhap(item)){zip.hidden=true;sua.hidden=true;}
     khung.append(card,xoaNut,zip,sua);taiAnh(image,card,item,current);return khung;
   }
 
@@ -59,7 +60,7 @@
     $id('duong-dan').hidden=!nhomMo;$id('ten-nhom').textContent=nhomMo;
     $id('ds-nhom').replaceChildren.apply($id('ds-nhom'),Array.from(new Set(items.map(function(x){return x.nhom;}).filter(Boolean))).sort().map(function(t){var o=document.createElement('option');o.value=t;return o;}));
     $id('so-mau').textContent=(nhomMo?(nhom[nhomMo]||[]).length+' hình trong nhóm':(nhomHien.length?nhomHien.length+' nhóm · ':'')+hinh.length+' hình'+(q?' khớp tìm kiếm':' lẻ'))+(dangChon?' · bấm vào hình để chọn':'');
-    $id('so-chon').textContent=daChon.size;document.body.classList.toggle('dang-chon',dangChon);$id('thanh-chon').hidden=!dangChon;$id('chon-nhieu').hidden=dangChon;
+    $id('so-chon').textContent=daChon.size;document.body.classList.toggle('dang-chon',dangChon);$id('thanh-chon').hidden=!dangChon;$id('chon-nhieu').hidden=dangChon||!coSua;
     grid.replaceChildren();
     if(!nhomHien.length&&!hinh.length){grid.innerHTML='<div class="trong" style="grid-column:1/-1"><h2>Chưa có mẫu phù hợp</h2><p>Thêm mã hình của bạn hoặc thay đổi bộ lọc.</p><a class="nut chinh" href="them-mau.html">Thêm mẫu</a></div>';return;}
     nhomHien.forEach(function(t){grid.append(theNhom(t,nhom[t],current));});
@@ -113,7 +114,7 @@
     try{var full=await Kho.doc(item.id);}catch(e){if(lan===luot){$('ma').value='';baoLoi('Không tải được mã: '+e.message);}return;}
     if(lan!==luot||!hop.open)return;
     goc={item:item,full:full,ten:full.title||'',ma:full.source||'',nhom:full.nhom||''};$('ten').value=goc.ten;$('nhom').value=goc.nhom;$('ma').value=goc.ma;khoa(false);
-    $('trang-thai').textContent=!coTheLuu(item)?'Bạn chỉ có quyền xem và copy mã. Muốn lưu bản sửa, bấm "Mở trang sửa đầy đủ" để lưu nháp.':laNhap(item)?'Đây là bản nháp trên máy: bấm Lưu sẽ cập nhật bản nháp.':'Sửa xong bấm Lưu. Nếu mã thay đổi, web sẽ build lại ảnh rồi mới lưu vào kho.';
+    $('trang-thai').textContent=!coTheLuu(item)?'Tài khoản của bạn không có quyền sửa kho: chỉ xem, copy và tải mã. Muốn giữ bản sửa riêng, bấm "Mở trang sửa đầy đủ" rồi lưu nháp trên máy.':laNhap(item)?'Đây là bản nháp trên máy: bấm Lưu sẽ cập nhật bản nháp.':'Sửa xong bấm Lưu. Nếu mã thay đổi, web sẽ build lại ảnh rồi mới lưu vào kho.';
   }
   $('dong').onclick=function(){if(!busy)hop.close();};
   $('zip').onclick=async function(){if(!goc||busy)return;var b=this;b.disabled=true;try{await Kho.taiZipMot(goc.item.id);}catch(e){baoLoi(e.message||String(e));}finally{b.disabled=false;}};
@@ -140,5 +141,6 @@
     }catch(e){khoa(false);$('trang-thai').textContent='';baoLoi(e.message||String(e));}
   };
 
+  if(!coSua)$id('doi-ten-nhom').hidden=true;if(!coTai){$id('tai-toan-bo').hidden=true;$id('zip-nhom').hidden=true;}
   ['tim','khoi','chu-de'].forEach(function(id){$id(id).addEventListener('input',render);});$id('tai-lai').onclick=load;await load();
 })();

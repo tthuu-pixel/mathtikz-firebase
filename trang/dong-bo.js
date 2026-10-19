@@ -7,6 +7,7 @@
   'use strict';
   var $ = function (id) { return document.getElementById('db-' + id); };
   if (!$('chay')) return;
+  if (!DangNhap.laChu()) { var phan = document.getElementById('dong-bo'); if (phan) phan.remove(); return; }
   var KHOA_TOKEN = 'mtk_token_cu', KHOA_TEN = 'mtk_ten_cu', token = '', dung = false;
   try { token = sessionStorage.getItem(KHOA_TOKEN) || ''; $('ten').value = localStorage.getItem(KHOA_TEN) || 'admin'; } catch (e) { $('ten').value = 'admin'; }
 

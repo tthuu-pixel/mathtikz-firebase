@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function dangNhap() { return request.auth != null; }
+    // Chủ kho: tài khoản Google, có mọi quyền.
+    function laChu() {
+      return dangNhap() && request.auth.token.email == 'truongtronghuu1990@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+    function duongHoSo() { return /databases/$(database)/documents/nguoiDung/$(request.auth.uid); }
+    // Thành viên còn hiệu lực: có hồ sơ, không bị khóa, không bị xóa.
+    function thanhVien() {
+      return dangNhap() && exists(duongHoSo())
+        && get(duongHoSo()).data.get('khoa', false) != true
+        && get(duongHoSo()).data.get('daXoa', false) != true;
+    }
+    function co(q) { return laChu() || (thanhVien() && get(duongHoSo()).data.get('quyen', {}).get(q, false) == true); }
+
+    // Chủ kho đọc/ghi mọi thứ.
+    match /{document=**} { allow read, write: if laChu(); }
+
+    match /hinh/{id} { allow read: if co('xem') || co('tai') || co('sua'); allow write: if co('sua'); }
+    match /anh/{id}  { allow read: if co('xem') || co('tai') || co('sua'); allow write: if co('sua'); }
+    match /ma/{id}   { allow read: if co('tai') || co('sua'); allow write: if co('sua'); }
+
+    match /caiDat/chung   { allow read: if thanhVien(); }          // macro dùng khi build
+    match /caiDat/dongBo  { allow read, write: if co('sua'); }     // ghi lại hình đã xóa
+
+    match /nguoiDung/{uid} {
+      allow read: if dangNhap() && request.auth.uid == uid;
+      // Thành viên chỉ được tự ghi thời điểm vào gần nhất.
+      allow update: if dangNhap() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lanCuoi']);
+    }
+    // Key AI riêng của từng thành viên: chỉ chính họ đọc/ghi.
+    match /aiRieng/{uid} { allow read, write: if dangNhap() && request.auth.uid == uid && co('ai'); }
+  }
+}

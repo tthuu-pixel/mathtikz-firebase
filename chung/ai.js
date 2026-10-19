@@ -1,5 +1,5 @@
-/* AI chạy thẳng trong trình duyệt (dùng cá nhân). API key lưu ở Firestore caiDat/ai,
-   chỉ tài khoản chủ kho đọc được (Firestore Rules). Không có máy chủ trung gian. */
+/* AI chạy thẳng trong trình duyệt. API key của chủ kho lưu ở Firestore caiDat/ai;
+   mỗi thành viên có quyền AI tự nhập key riêng, lưu ở aiRieng/{uid} (chỉ chính họ đọc được). */
 (function () {
   'use strict';
   var MAC_DINH = {
@@ -8,7 +8,8 @@
     claude: { base: 'https://api.anthropic.com/v1', model: 'claude-sonnet-5-5' },
     deepseek: { base: 'https://api.deepseek.com', model: 'deepseek-flash' }
   };
-  var DUONG = 'caiDat/ai', cache = null;
+  var cache = null;
+  function DUONG() { return DangNhap.laChu() ? 'caiDat/ai' : 'aiRieng/' + FB.uid(); }
 
   function hang(p) { if (!Object.prototype.hasOwnProperty.call(MAC_DINH, p)) throw Error('Nhà cung cấp AI không hợp lệ.'); return p; }
   function kiemBase(base) {
@@ -23,7 +24,7 @@
   async function docCauHinh() {
     if (cache) return cache;
     await DangNhap.sanSang();
-    var d = (await FB.get(DUONG)) || {}, c = { active: MAC_DINH[d.active] ? d.active : 'gemini', providers: {} };
+    var d = (await FB.get(DUONG())) || {}, c = { active: MAC_DINH[d.active] ? d.active : 'gemini', providers: {} };
     Object.keys(MAC_DINH).forEach(function (id) {
       var p = (d.providers || {})[id] || {};
       c.providers[id] = { base: p.base || MAC_DINH[id].base, model: p.model || MAC_DINH[id].model, key: p.key || '' };
@@ -44,7 +45,7 @@
       else if (d.key) { if (typeof d.key !== 'string' || d.key.length > 1000 || /[\r\n]/.test(d.key)) throw Error('API key không hợp lệ.'); key = d.key.trim(); }
       c.providers[id] = { base: kiemBase(d.base), model: kiemModel(d.model), key: key };
     }
-    await FB.set(DUONG, { active: c.active, providers: c.providers });
+    await FB.set(DUONG(), { active: c.active, providers: c.providers });
     return congKhai(c);
   }
 
