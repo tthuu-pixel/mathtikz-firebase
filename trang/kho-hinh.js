@@ -142,5 +142,18 @@
   };
 
   if(!coSua)$id('doi-ten-nhom').hidden=true;if(!coTai){$id('tai-toan-bo').hidden=true;$id('zip-nhom').hidden=true;}
+  /* ---------- Xuất kho cho AI (chủ kho) ---------- */
+  if(DangNhap.laChu()&&window.XuatAI){
+    $id('xuat-ai').hidden=false;
+    if(XuatAI.ghiThangDuoc)XuatAI.layHandle().then(function(h){if(h){$id('doi-thu-muc-ai').hidden=false;$id('xuat-ai').title='Ghi kho vào thư mục "'+h.name+'" cho Codex và Claude Cowork';}});
+    else $id('xuat-ai').title='Trình duyệt này không ghi thẳng vào thư mục được: web tải về kho-tikz.zip, bạn giải nén đè vào thư mục kho-tikz trong Google Drive';
+    var xuat=async function(chonLai){var b=$id('xuat-ai'),cu=b.textContent;b.disabled=true;HienThi.xoaLoi();
+      try{var kq=await XuatAI.chay(function(i,n){b.textContent='Đang xuất '+i+'/'+n+'…';},chonLai);
+        if(!kq)return;
+        if(kq.zip)GiaoDien.thongBao('Đã tải kho-tikz.zip ('+kq.soHinh+' hình). Giải nén đè vào thư mục Google Drive.');
+        else{$id('doi-thu-muc-ai').hidden=false;GiaoDien.thongBao('Đã xuất '+kq.soHinh+' hình vào "'+kq.thuMuc+'": ghi mới '+kq.ghiMoi+(kq.xoa?', xóa '+kq.xoa:'')+'.');}}
+      catch(e){HienThi.loi(e);}finally{b.disabled=false;b.textContent=cu;}};
+    $id('xuat-ai').onclick=function(){xuat(false);};$id('doi-thu-muc-ai').onclick=function(){xuat(true);};
+  }
   ['tim','khoi','chu-de'].forEach(function(id){$id(id).addEventListener('input',render);});$id('tai-lai').onclick=load;await load();
 })();

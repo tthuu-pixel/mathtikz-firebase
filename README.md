@@ -13,6 +13,7 @@ Chạy hoàn toàn trên trình duyệt: **GitHub Pages + Firebase** (Authentica
 - `trang/dong-bo.js` — Cài đặt → Đồng bộ 2 chiều với MathTikZ-Pro (Drive + Apps Script).
 - `chung/pic.js` — biến hình trong kho thành `\pic` (Vẽ theo đề: AI chọn mẫu, đặt pic, vẽ thêm yếu tố toán học, build và sửa ngay trên trang).
 - `chung/quy-tac-ve.js` — quy tắc vẽ hình mặc định cho AI (theo chuẩn hóa LaTeX Toán: TikZ thuần, dựng điểm bằng phép biến hình, nhãn theo góc). Chủ kho sửa trong Cài đặt.
+- `chung/xuat-ai.js` — nút "Xuất kho cho AI" (chủ kho) ở Dữ liệu Hình TikZ: ghi kho ra thư mục `kho-tikz` (Google Drive) gồm `index.json`, `hinh/`, `pic/`, `anh/`, `macro-chung.tex`, `HUONG-DAN.md`, `AGENTS.md`, `CLAUDE.md` cho Codex và Claude Cowork. Chrome/Edge ghi thẳng, chỉ ghi phần thay đổi; Firefox tải `kho-tikz.zip`.
 - `chung/zip.js` — tạo file ZIP trong trình duyệt (tải từng hình hoặc toàn bộ kho).
 
 ## Firestore
