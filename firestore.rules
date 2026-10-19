@@ -24,7 +24,6 @@ service cloud.firestore {
     match /ma/{id}   { allow read: if co('tai') || co('sua'); allow write: if co('sua'); }
 
     match /caiDat/chung   { allow read: if thanhVien(); }          // macro dùng khi build
-    match /caiDat/dongBo  { allow read, write: if co('sua'); }     // ghi lại hình đã xóa
 
     match /nguoiDung/{uid} {
       allow read: if dangNhap() && request.auth.uid == uid;

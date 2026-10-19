@@ -92,7 +92,6 @@
     var meta = { title: title, kind: item.kind, grade: grade, topic: String(item.topic || '').slice(0, 100), tags: String(item.tags || '').slice(0, 500),
       description: String(item.description || '').slice(0, 1000), createdAt: cu && cu.createdAt || bay, updatedAt: bay };
     meta.nhom = chuanNhom(item.nhom);
-    if (cu && cu.dongBo) meta.dongBo = cu.dongBo;
     await FB.ghiNhieu([{ path: 'hinh/' + id, data: meta }, { path: 'ma/' + id, data: { source: source, v: bay } }, { path: 'anh/' + id, data: { data: image, v: bay } }]);
     xoaNhap('nhap-' + id);
     if (laNhap(item.id)) xoaNhap(item.id);
@@ -100,12 +99,7 @@
   }
   async function xoa(id) {
     if (laNhap(id)) return xoaNhap(id);
-    var FB = await san(), cu = await FB.get('hinh/' + id), ds = [{ path: 'hinh/' + id, xoa: true }, { path: 'ma/' + id, xoa: true }, { path: 'anh/' + id, xoa: true }];
-    if (cu && cu.dongBo && cu.dongBo.idCu) {
-      var db = (await FB.get('caiDat/dongBo')) || {}, daXoa = (db.daXoa || []).filter(function (x) { return x !== cu.dongBo.idCu; });
-      daXoa.push(cu.dongBo.idCu);
-      ds.push({ path: 'caiDat/dongBo', data: Object.assign({}, db, { daXoa: daXoa }) });
-    }
+    var FB = await san(), ds = [{ path: 'hinh/' + id, xoa: true }, { path: 'ma/' + id, xoa: true }, { path: 'anh/' + id, xoa: true }];
     await FB.ghiNhieu(ds);
   }
 
