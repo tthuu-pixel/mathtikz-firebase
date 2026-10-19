@@ -44,3 +44,6 @@ Dán nội dung `firestore.rules` vào Firebase → Firestore → Rules → Publ
 2. Dán `firebaseConfig` vào `chung/cau-hinh.js`.
 3. GitHub → Settings → Pages → Deploy from branch `main`, thư mục `/ (root)`.
 4. Mở web, đăng nhập Google → Cài đặt: nhập API key AI → Đồng bộ với MathTikZ-Pro (nếu cần).
+
+## Cập nhật web
+Các trang nạp `chung/*.js`, `trang/*.js` kèm `?v=...`. Mỗi lần đổi mã, tăng giá trị `v` trong mọi file `.html` để trình duyệt không dùng bản cũ trong bộ nhớ đệm (GitHub Pages cho phép đệm 10 phút).
