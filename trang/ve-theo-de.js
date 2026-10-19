@@ -14,10 +14,11 @@
     t.chon = u[0].id;
     t.canChon = u.length > 1 && u[1].diem >= 0.6 && u[0].diem - u[1].diem < 0.15;
   }
-  // Tên pic giống hệt cách Kho.ve đặt (theo thứ tự, mỗi hình một pic).
+  // Tên pic giống hệt cách Kho.ve đặt: theo thứ tự, chỉ hình thực tế thành pic; hình toán cơ bản là mã mẫu cho AI.
+  function laPic(id) { return theoId[id] && theoId[id].kind === 'real'; }
   function tenPic() {
     var daDung = {}, ten = {};
-    thanhPhan.forEach(function (t) { if (t.chon && !ten[t.chon]) ten[t.chon] = Pic.ten(theoId[t.chon].title, daDung); });
+    thanhPhan.forEach(function (t) { if (t.chon && laPic(t.chon) && !ten[t.chon]) ten[t.chon] = Pic.ten(theoId[t.chon].title, daDung); });
     return ten;
   }
 
@@ -41,7 +42,7 @@
     thanhPhan.forEach(function (t, i) {
       var khung = node('div', 'thanh-phan'), dau = node('h3', '', t.ten + ' ');
       dau.append(node('span', 'nhan', t.vaiTro === 'mau-nen' ? 'Mẫu nền' : 'Vật thể'));
-      if (t.chon) { dau.append(' '); dau.append(node('span', 'nhan-pic', '\\pic {' + ten[t.chon] + '}')); }
+      if (t.chon) { dau.append(' '); dau.append(node('span', 'nhan-pic', ten[t.chon] ? '\\pic {' + ten[t.chon] + '}' : 'mã mẫu cho AI')); }
       khung.append(dau);
       var luoi = node('div', 'luoi-chon');
       if (!t.ungVien.length) {
@@ -75,8 +76,8 @@
   $('phan-tich').onclick = async function () {
     var de = $('de').value.trim(), nut = this;
     if (!de) { HienThi.loi(Error('Nhập đề bài trước.')); return; }
-    if (!items.length) { HienThi.loi(Error('Kho chưa có hình nào để chọn mẫu.')); return; }
-    HienThi.xoaLoi(); nut.disabled = true; baoPT('AI đang đọc đề và tìm mẫu trong kho…');
+    HienThi.xoaLoi();
+    if (!items.length) { thanhPhan = []; veThem = []; baoPT('Kho chưa có hình nào, AI sẽ tự vẽ toàn bộ.'); $('khu-chon').hidden = false; veDanhSach(); return; } nut.disabled = true; baoPT('AI đang đọc đề và tìm mẫu trong kho…');
     try {
       var kq = await AIKetNoi.chonMau(de, items);
       thanhPhan = kq.thanhPhan; veThem = kq.veThem; thanhPhan.forEach(quyetDinh);
@@ -151,12 +152,17 @@
       baoVe('AI đang dựng hình' + (ids.length ? ' từ ' + ids.length + ' mẫu' : '') + '…');
       kq = await Kho.ve(de, ids, veMoi); kq.de = de; kq.ids = ids;
       anh = ''; maAnh = ''; maTruocAI = null; idDaLuu = ''; $('kq-hoan-tac').hidden = true;
-      datMa(kq.source); $('kq-pic').textContent = kq.pics.length ? 'pic: ' + kq.pics.map(function (p) { return p.name; }).join(', ') : '';
+      datMa(kq.source); $('kq-pic').textContent = [kq.pics.length ? 'pic: ' + kq.pics.map(function (p) { return p.name; }).join(', ') : '', kq.mauNen && kq.mauNen.length ? 'mã mẫu: ' + kq.mauNen.map(function (m) { return m.title; }).join(', ') : ''].filter(Boolean).join(' · ');
       $('kq-ten').value = de.replace(/\s+/g, ' ').slice(0, 80);
       $('khu-ket-qua').hidden = false; $('khu-ket-qua').scrollIntoView({ behavior: 'smooth', block: 'start' });
       baoVe('Đã vẽ xong, đang build…');
       var ok = await build(true);
       tin = ok ? 'Đã vẽ và build xong.' : 'Đã vẽ xong nhưng mã còn lỗi biên dịch.';
+      var chuY = [];
+      if (kq.thieu && kq.thieu.length) chuY.push('AI chưa đặt pic ' + kq.thieu.join(', '));
+      if (kq.dinhLai && kq.dinhLai.length) chuY.push('AI tự vẽ lại ' + kq.dinhLai.join(', ') + ' thay vì dùng mẫu');
+      if (kq.viPham && kq.viPham.length) chuY.push('mã còn ' + kq.viPham.join('; '));
+      if (chuY.length) tin += ' Lưu ý: ' + chuY.join('; ') + '. Có thể bấm Vẽ lại.';
     } catch (e) { HienThi.loi(e); baoVe(''); baoKQ(''); paint(); }
     finally { dangBan = false; khoaKQ(false); veDanhSach(); if (tin) baoVe(tin); }
   }

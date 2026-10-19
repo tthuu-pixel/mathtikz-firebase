@@ -176,14 +176,22 @@
     chuanNhom: chuanNhom, datNhom: datNhom, doiTenNhom: doiTenNhom,
     api: api, danhSach: danhSach, theoDoi: theoDoi, doc: doc, anh: anh, build: build, thuBuild: thuBuild, macro: macro, quyTacVe: quyTacVe,
     luu: luu, xoa: xoa, nhap: put, docNhap: read,
-    // Dựng hình theo đề: các hình được chọn (ids) thành pic, AI chỉ đặt pic và vẽ yếu tố toán học.
+    // Dựng hình theo đề: hình thực tế được chọn thành pic (AI chỉ đặt pic và vẽ yếu tố toán học);
+    // hình toán cơ bản chỉ là mã tham khảo để AI dựng lại theo số liệu của đề.
     ve: async function (de, ids, veMoi) {
-      var daDung = {}, pics = await Promise.all((ids || []).map(async function (id) {
+      var ds = await Promise.all((ids || []).map(async function (id) {
         var x = await doc(id);
-        return { id: id, name: Pic.ten(x.title, daDung), title: x.title, kind: x.kind, source: x.source, khung: Pic.khung(x.source) };
+        try { Pic.tach(x.source || ''); } catch (e) { throw Error('Mẫu "' + x.title + '" chưa có mã TikZ hợp lệ (' + e.message + '). Hãy chọn mẫu khác.'); }
+        return x;
       }));
-      var kq = await AIKetNoi.veTheoDe(de, pics, veMoi || []);
+      var daDung = {}, pics = [], mauNen = [];
+      ds.forEach(function (x) {
+        if (x.kind === 'real') pics.push({ id: x.id, name: Pic.ten(x.title, daDung), title: x.title, kind: x.kind, source: x.source, khung: Pic.khung(x.source), diem: Pic.diem(x.source) });
+        else mauNen.push({ id: x.id, title: x.title, source: Tikz.tach(x.source) });
+      });
+      var kq = await AIKetNoi.veTheoDe(de, pics, veMoi || [], mauNen);
       kq.pics = pics.map(function (p) { return { id: p.id, name: p.name, title: p.title }; });
+      kq.mauNen = mauNen.map(function (m) { return { id: m.id, title: m.title }; });
       kq.dinhNghia = pics.map(function (p) { return { name: p.name, def: Pic.dinhNghia(p.name, p.source) }; });
       return kq;
     },

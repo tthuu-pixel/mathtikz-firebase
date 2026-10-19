@@ -10,7 +10,7 @@ Chạy hoàn toàn trên trình duyệt: **GitHub Pages + Firebase** (Authentica
 - `quan-tri.html` + `trang/quan-tri.js` — chủ kho tạo tài khoản, bật/tắt quyền, khóa, đặt lại mật khẩu.
 - `chung/kho-du-lieu.js` — đọc/ghi kho, build TikZ gọi thẳng tikz-fly, bản nháp IndexedDB.
 - `chung/ai.js` — gọi thẳng Gemini / OpenAI / Claude / DeepSeek; key của chủ kho ở `caiDat/ai`, key riêng của thành viên ở `aiRieng/{uid}`.
-- `chung/pic.js` — biến hình trong kho thành `\pic` (Vẽ theo đề: AI chọn mẫu, đặt pic, vẽ thêm yếu tố toán học, build và sửa ngay trên trang).
+- `chung/pic.js` — biến hình thực tế trong kho thành `\pic` (Vẽ theo đề: AI chọn mẫu, đặt pic, vẽ thêm yếu tố toán học, build và sửa ngay trên trang). Điểm đặt tên bên trong mẫu được đổi thành `ten-X` (ví dụ `(thang-B)`) để không đè điểm của bài toán và để AI gắn nhãn vào đúng vật thể. Hình toán cơ bản không thành pic mà là mã mẫu để AI dựng lại theo số liệu đề.
 - `chung/quy-tac-ve.js` — quy tắc vẽ hình mặc định cho AI (theo chuẩn hóa LaTeX Toán: TikZ thuần, dựng điểm bằng phép biến hình, nhãn theo góc). Chủ kho sửa trong Cài đặt.
 - `chung/xuat-ai.js` — nút "Xuất kho cho AI" (chủ kho) ở Dữ liệu Hình TikZ: ghi kho ra thư mục `kho-tikz` (Google Drive) gồm `index.json`, `hinh/`, `pic/`, `anh/`, `macro-chung.tex`, `HUONG-DAN.md`, `AGENTS.md`, `CLAUDE.md` cho Codex và Claude Cowork. Chrome/Edge ghi thẳng, chỉ ghi phần thay đổi; Firefox tải `kho-tikz.zip`.
 - `chung/zip.js` — tạo file ZIP trong trình duyệt (tải từng hình hoặc toàn bộ kho).
