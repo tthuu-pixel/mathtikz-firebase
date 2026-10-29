@@ -2,7 +2,7 @@
    ĐĂNG NHẬP · PHÂN QUYỀN · BẢO VỆ TRANG · TIỆN ÍCH GIAO DIỆN
    Chủ kho (CAU_HINH.EMAIL_CHU) đăng nhập bằng Google, có mọi quyền.
    Tài khoản khác: email + mật khẩu do chủ kho tạo; quyền đọc ở nguoiDung/{uid}.quyen
-   = { xem, tai, ai, sua }. Firestore Rules kiểm tra lại các quyền này phía Google.
+   = { xem, tai, sua }. Firestore Rules kiểm tra lại các quyền này phía Google.
    ===================================================================== */
 (function () {
   'use strict';
@@ -10,9 +10,9 @@
   var theScript = document.currentScript;
   var TRANG = (theScript && theScript.getAttribute('data-trang')) || '';
   var KHOA_PHIEN = 'mtk_phien';
-  var DU_QUYEN = { xem: true, tai: true, ai: true, sua: true };
+  var DU_QUYEN = { xem: true, tai: true, sua: true };
   // Trang nào cần quyền gì (theo body[data-trang]).
-  var CAN = { kho: ['xem'], ve: ['ai', 'tai'], quet: ['ai', 'sua'], 'quan-tri': ['chu'] };
+  var CAN = { kho: ['xem'] };
 
   function doc(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
   function ghi(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -34,7 +34,7 @@
     if (!d || d.khoa || d.daXoa) return null;
     var q = d.quyen || {};
     return { uid: u.uid, ten: u.email, hoTen: d.hoTen || u.email, anh: '', vaiTro: 'nguoidung',
-      quyen: { xem: !!(q.xem || q.tai || q.sua), tai: !!q.tai, ai: !!q.ai, sua: !!q.sua } };
+      quyen: { xem: !!(q.xem || q.tai || q.sua), tai: !!q.tai, sua: !!q.sua } };
   }
   function trangDau(p) { return p && p.quyen && p.quyen.xem ? 'thu-vien.html' : 'them-mau.html'; }
   function veDangNhap(lyDo) { location.replace('index.html' + (lyDo ? '?' + lyDo + '=1' : '')); }
@@ -79,7 +79,7 @@
     return can.filter(function (q) { return q === 'chu' ? p.vaiTro !== 'admin' : !(p.vaiTro === 'admin' || p.quyen[q]); });
   }
   function chanTrang(thieu) {
-    var ten = { xem: 'Xem', tai: 'Tải', ai: 'AI', sua: 'Sửa kho', chu: 'Chủ kho' };
+    var ten = { xem: 'Xem', tai: 'Tải', sua: 'Sửa kho', chu: 'Chủ kho' };
     var main = document.querySelector('main.noi-dung');
     if (main) main.innerHTML = '<div class="trong"><h2>Bạn chưa có quyền dùng trang này</h2><p>Cần quyền: ' + thieu.map(function (q) { return ten[q]; }).join(', ') + '. Hãy liên hệ chủ kho để được cấp.</p><a class="nut chinh" href="' + trangDau(Phien.lay()) + '">Về trang chính</a></div>';
   }

@@ -1,7 +1,7 @@
 /* Cấu hình MATHTIKZ (bản Firebase, dùng cá nhân). */
 window.CAU_HINH = {
   TEN_SAN_PHAM: 'MATHTIKZ',
-  KHAU_HIEU: 'Dữ liệu Hình TikZ · Vẽ theo đề bài',
+  KHAU_HIEU: 'Dữ liệu Hình TikZ',
   // Chỉ email này được đăng nhập. Firestore Rules chặn mọi email khác ở phía Google.
   EMAIL_CHU: 'truongtronghuu1990@gmail.com',
   BUILD_TIKZ_URL: 'https://tikz-fly.fly.dev/compile',

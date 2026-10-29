@@ -2,7 +2,7 @@
    Firestore:  hinh/{id}  thông tin hình (nhẹ, dùng cho danh sách)
                ma/{id}    { source, v }      mã TikZ
                anh/{id}   { data, v }        ảnh data URL; v = updatedAt để biết ảnh còn mới
-               caiDat/chung { macros }       caiDat/ai (xem chung/ai.js)            */
+               caiDat/chung { macros, quyTacVe }                                  */
 (function () {
   'use strict';
   /* ---------- Bản nháp trên máy (IndexedDB) ---------- */
@@ -24,7 +24,7 @@
   var chungCache = null;
   async function chung() { if (chungCache) return chungCache; var FB = await san(); return (chungCache = (await FB.get('caiDat/chung')) || {}); }
   async function macro() { return (await chung()).macros || ''; }
-  // Quy tắc vẽ hình gửi cho AI (Vẽ theo đề): chủ kho sửa trong Cài đặt, để trống thì dùng mặc định.
+  // Quy tắc vẽ hình ghi vào HUONG-DAN.md khi xuất kho: chủ kho sửa trong Cài đặt, để trống thì dùng mặc định.
   async function quyTacVe() { var q = (await chung()).quyTacVe; return q && q.trim() ? q : window.QUY_TAC_VE_MAC_DINH || ''; }
 
   /* ---------- Build TikZ (trình duyệt gọi thẳng dịch vụ) ---------- */
@@ -107,11 +107,6 @@
   async function api(action, data) {
     data = data || {};
     switch (action) {
-      case 'docAI': return { ok: true, ai: await AIKetNoi.doc() };
-      case 'luuAI': return { ok: true, ai: await AIKetNoi.luu(data) };
-      case 'thuAI': await AIKetNoi.thu(data.provider); return { ok: true };
-      case 'dsModelAI': return { ok: true, models: await AIKetNoi.dsModel(data.provider) };
-      case 'quetHinh': return { ok: true, result: await AIKetNoi.quetHinh(data) };
       case 'docCaiDat': return { ok: true, macros: await macro() };
       case 'luuCaiDat': {
         if (typeof data.macros !== 'string' || data.macros.length > 10000) throw Error('Macro quá dài (tối đa 10.000 ký tự).');
@@ -176,26 +171,6 @@
     chuanNhom: chuanNhom, datNhom: datNhom, doiTenNhom: doiTenNhom,
     api: api, danhSach: danhSach, theoDoi: theoDoi, doc: doc, anh: anh, build: build, thuBuild: thuBuild, macro: macro, quyTacVe: quyTacVe,
     luu: luu, xoa: xoa, nhap: put, docNhap: read,
-    // Dựng hình theo đề: hình thực tế được chọn thành pic (AI chỉ đặt pic và vẽ yếu tố toán học);
-    // hình toán cơ bản chỉ là mã tham khảo để AI dựng lại theo số liệu của đề.
-    ve: async function (de, ids, veMoi) {
-      var ds = await Promise.all((ids || []).map(async function (id) {
-        var x = await doc(id);
-        try { Pic.tach(x.source || ''); } catch (e) { throw Error('Mẫu "' + x.title + '" chưa có mã TikZ hợp lệ (' + e.message + '). Hãy chọn mẫu khác.'); }
-        return x;
-      }));
-      var daDung = {}, pics = [], mauNen = [];
-      ds.forEach(function (x) {
-        if (x.kind === 'real') pics.push({ id: x.id, name: Pic.ten(x.title, daDung), title: x.title, kind: x.kind, source: x.source, khung: Pic.khung(x.source), diem: Pic.diem(x.source) });
-        else mauNen.push({ id: x.id, title: x.title, source: Tikz.tach(x.source) });
-      });
-      var kq = await AIKetNoi.veTheoDe(de, pics, veMoi || [], mauNen);
-      kq.pics = pics.map(function (p) { return { id: p.id, name: p.name, title: p.title }; });
-      kq.mauNen = mauNen.map(function (m) { return { id: m.id, title: m.title }; });
-      kq.dinhNghia = pics.map(function (p) { return { name: p.name, def: Pic.dinhNghia(p.name, p.source) }; });
-      return kq;
-    },
-    suaMa: function (source, loi, quyTac) { return AIKetNoi.suaMa(source, loi, quyTac); },
     tai: function (content, name, type) { var url = URL.createObjectURL(new Blob([content], { type: type })), a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(function () { URL.revokeObjectURL(url); }, 3000); }
   };
 })();
