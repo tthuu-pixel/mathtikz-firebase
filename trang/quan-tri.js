@@ -1,14 +1,14 @@
 /* Quản trị tài khoản (chỉ chủ kho). Mỗi tài khoản: Firebase Auth (email + mật khẩu)
-   + hồ sơ nguoiDung/{uid} = { email, hoTen, quyen:{xem,tai,ai,sua}, khoa, daXoa, taoLuc, lanCuoi }. */
+   + hồ sơ nguoiDung/{uid} = { email, hoTen, quyen:{xem,tai,sua}, khoa, daXoa, taoLuc, lanCuoi }. */
 (async function () {
   'use strict';
   if (!DangNhap.laChu()) return;
   var $ = function (id) { return document.getElementById(id); };
-  var Q = ['xem', 'tai', 'ai', 'sua'], ds = [], FB;
+  var Q = ['xem', 'tai', 'sua'], ds = [], FB;
   function node(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function gio(s) { var d = new Date(s); return !s || isNaN(d) ? 'Chưa vào lần nào' : d.toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }); }
   function chuanQuyen(q, doi) {
-    q = Object.assign({ xem: false, tai: false, ai: false, sua: false }, q);
+    q = Object.assign({ xem: false, tai: false, sua: false }, q); delete q.ai;
     if (doi && !q[doi] && doi === 'xem') { q.tai = false; q.sua = false; }   // bỏ Xem thì bỏ luôn Tải, Sửa kho
     if (q.tai || q.sua) q.xem = true;                                         // Tải / Sửa kho cần Xem
     return q;
@@ -67,9 +67,9 @@
       var hoSo = { email: email, hoTen: ten || (cu && cu.hoTen) || '', quyen: quyen, khoa: false, daXoa: false };
       if (!khoiPhuc || !cu) hoSo.taoLuc = new Date().toISOString();
       await FB.set('nguoiDung/' + uid, hoSo, true);
-      var nd = 'Trang: ' + location.href.replace(/quan-tri\.html.*$/, '') + '\nEmail: ' + email + '\n' +
+      var nd = 'Trang: ' + location.href.replace(/[^\/]*$/, '') + '\nEmail: ' + email + '\n' +
         (giuMk ? 'Mật khẩu: giữ mật khẩu cũ (tài khoản được khôi phục). Nếu quên, bấm "Đặt lại MK" trong bảng.' : 'Mật khẩu: ' + mk) +
-        '\nQuyền: ' + Q.filter(function (k) { return quyen[k]; }).map(function (k) { return { xem: 'Xem', tai: 'Tải', ai: 'AI', sua: 'Sửa kho' }[k]; }).join(', ');
+        '\nQuyền: ' + Q.filter(function (k) { return quyen[k]; }).map(function (k) { return { xem: 'Xem', tai: 'Tải', sua: 'Sửa kho' }[k]; }).join(', ');
       $('xong-nd').textContent = nd; $('xong').hidden = false;
       $('tao-email').value = ''; $('tao-ten').value = ''; $('tao-mk').value = matKhau();
       GiaoDien.thongBao(khoiPhuc ? 'Đã khôi phục tài khoản ' + email + '.' : 'Đã tạo tài khoản ' + email + '.');
@@ -114,7 +114,7 @@
     var hien = con.filter(function (x) { return !tim || (String(x.email) + ' ' + String(x.hoTen || '')).toLowerCase().indexOf(tim) >= 0; })
       .sort(function (a, b) { return String(a.hoTen || a.email).localeCompare(String(b.hoTen || b.email), 'vi'); });
     body.replaceChildren();
-    if (!hien.length) { var tr = node('tr'), td = node('td', 'trong-bang', con.length ? 'Không có tài khoản khớp tìm kiếm.' : 'Chưa có tài khoản nào. Tạo tài khoản đầu tiên ở khung phía trên.'); td.colSpan = 8; tr.append(td); body.append(tr); return; }
+    if (!hien.length) { var tr = node('tr'), td = node('td', 'trong-bang', con.length ? 'Không có tài khoản khớp tìm kiếm.' : 'Chưa có tài khoản nào. Tạo tài khoản đầu tiên ở khung phía trên.'); td.colSpan = 7; tr.append(td); body.append(tr); return; }
     hien.forEach(function (x) { body.append(hang(x)); });
   }
   $('tim').addEventListener('input', ve);

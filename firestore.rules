@@ -31,7 +31,5 @@ service cloud.firestore {
       allow update: if dangNhap() && request.auth.uid == uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lanCuoi']);
     }
-    // Key AI riêng của từng thành viên: chỉ chính họ đọc/ghi.
-    match /aiRieng/{uid} { allow read, write: if dangNhap() && request.auth.uid == uid && co('ai'); }
   }
 }

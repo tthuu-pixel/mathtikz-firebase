@@ -6,10 +6,7 @@
     var co=DangNhap.co,links=[];
     if(co('xem'))links.push(['thu-vien.html','Dữ liệu Hình TikZ','kho']);
     links.push(['them-mau.html','Thêm mẫu','sua']);
-    if(co('ai')&&co('tai'))links.push(['ve-theo-de.html','Vẽ theo đề bài','ve']);
-    if(co('ai')&&co('sua'))links.push(['quet-hinh.html','Quét hình thực tế','quet']);
-    links.push(['cai-dat.html','Cài đặt','cai-dat']);
-    if(DangNhap.laChu())links.push(['quan-tri.html','Quản trị tài khoản','quan-tri']);
+    links.push(['cai-dat.html',DangNhap.laChu()?'Cài đặt & tài khoản':'Cài đặt','cai-dat']);
     if(nav)nav.innerHTML=links.map(function(x){return '<a class="'+(page===x[2]?'bat':'')+'" href="'+x[0]+'">'+x[1]+'</a>';}).join('');
     var note=document.getElementById('trang-thai-kho');if(note)note.textContent='Firebase · đồng bộ mọi máy';
   });
