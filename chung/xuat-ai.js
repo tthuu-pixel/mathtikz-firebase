@@ -24,7 +24,7 @@
   /* ---------- Nội dung hướng dẫn cho AI ---------- */
   function huongDan(quyTac, macro) {
     return '# Kho hình TikZ của Hữu (xuất từ MATHTIKZ)\n\n' +
-      'Thư mục này CHỈ ĐỌC. Mỗi lần Hữu bấm "Xuất kho cho AI" trên web, toàn bộ nội dung được ghi đè. Không sửa, không thêm file ở đây; hình vẽ mới đặt ở thư mục làm việc của Hữu.\n\n' +
+      'Thư mục này CHỈ ĐỌC. Web MATHTIKZ tự đồng bộ thư mục này mỗi khi kho thay đổi (nút "Đồng bộ kho-tikz"), toàn bộ nội dung được ghi đè. Không sửa, không thêm file ở đây; hình vẽ mới đặt ở thư mục làm việc của Hữu.\n\n' +
       '## Thành phần\n\n' +
       '- `index.json`: danh mục mọi hình. Mỗi mục có `id`, `ten`, `nhom`, `loai` (`thuc-te` hoặc `toan-co-ban`), `khoi`, `chuDe`, `tuKhoa`, `moTa`, `tenPic`, `khung` (vùng tọa độ của hình khi scale=1: xmin, xmax, ymin, ymax), `ma` (file mã gốc), `pic` (file định nghĩa pic dựng sẵn), `anh` (ảnh PNG, có thể trống), `capNhat`.\n' +
       '- `hinh/<nhóm>/<tên>.tex`: mã gốc của từng hình (một khối tikzpicture).\n' +
@@ -124,9 +124,16 @@
     return { soHinh: g.muc.length, zip: true };
   }
 
+  // Ghi một lần cho chắc: hai lần đồng bộ (bấm nút và tự động) không chạy chồng lên nhau.
+  var dangChay = null;
+  function moiLan(fn) { if (dangChay) return dangChay; dangChay = fn().finally(function () { dangChay = null; }); return dangChay; }
+
   // Gọi trong sự kiện bấm nút (cần cử chỉ người dùng để hỏi quyền thư mục).
   async function chay(tienDo, chonLai) {
     if (!window.showDirectoryPicker) return vaoZip(tienDo);
+    return moiLan(function () { return chayThuMuc(tienDo, chonLai); });
+  }
+  async function chayThuMuc(tienDo, chonLai) {
     var goc = chonLai ? null : await layHandle();
     if (goc) {
       var q = await goc.queryPermission({ mode: 'readwrite' });
@@ -136,10 +143,21 @@
     if (!goc) {
       try { goc = await window.showDirectoryPicker({ id: 'kho-tikz', mode: 'readwrite', startIn: 'documents' }); }
       catch (e) { if (e && e.name === 'AbortError') return null; throw e; }
+      // Web ghi đè và xóa file cũ của kho trong thư mục này, nên hỏi lại nếu chọn nhầm thư mục khác.
+      if (goc.name !== 'kho-tikz' && !confirm('Thư mục vừa chọn tên là "' + goc.name + '", không phải "kho-tikz".\nWeb sẽ ghi kho hình vào thư mục này. Tiếp tục?')) return null;
       await luuHandle(goc);
     }
     return vaoThuMuc(goc, tienDo);
   }
 
-  window.XuatAI = { chay: chay, ghiThangDuoc: !!window.showDirectoryPicker, layHandle: layHandle, _chuanBi: chuanBi, _huongDan: huongDan };
+  // Tự đồng bộ không hỏi gì: chỉ chạy khi trình duyệt vẫn còn giữ quyền ghi vào thư mục đã chọn
+  // (Chrome/Edge: chọn "Cho phép mọi lần truy cập" ở lần hỏi quyền). Không có quyền thì bỏ qua.
+  async function tuDong(tienDo) {
+    if (!window.showDirectoryPicker) return null;
+    var goc = await layHandle();
+    if (!goc || (await goc.queryPermission({ mode: 'readwrite' })) !== 'granted') return null;
+    return moiLan(function () { return vaoThuMuc(goc, tienDo || function () {}); });
+  }
+
+  window.XuatAI = { chay: chay, tuDong: tuDong, ghiThangDuoc: !!window.showDirectoryPicker, layHandle: layHandle, _chuanBi: chuanBi, _huongDan: huongDan };
 })();
