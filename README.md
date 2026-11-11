@@ -9,8 +9,8 @@ Chạy hoàn toàn trên trình duyệt: **GitHub Pages + Firebase** (Authentica
 - `chung/dang-nhap.js` — phiên, quyền từng tài khoản, chặn trang khi thiếu quyền.
 - `chung/kho-du-lieu.js` — đọc/ghi kho, build TikZ gọi thẳng tikz-fly, bản nháp IndexedDB.
 - `cai-dat.html` + `trang/cai-dat.js` + `trang/quan-tri.js` — Cài đặt (tài khoản, macro, quy tắc vẽ) và Quản trị tài khoản (chỉ chủ kho) gộp chung một trang; `quan-tri.html` chỉ chuyển hướng sang đây.
-- `chung/pic.js`, `chung/quy-tac-ve.js` — dựng `\pic` và quy tắc vẽ hình, dùng khi xuất kho cho Claude local.
-- `chung/xuat-ai.js` — nút "Xuất kho cho AI" (chủ kho) ở Dữ liệu Hình TikZ: ghi kho ra thư mục `kho-tikz` (Google Drive) gồm `index.json`, `hinh/`, `pic/`, `anh/`, `macro-chung.tex`, `HUONG-DAN.md`, `AGENTS.md`, `CLAUDE.md` cho Codex và Claude Cowork. Chrome/Edge ghi thẳng, chỉ ghi phần thay đổi; Firefox tải `kho-tikz.zip`.
+- `chung/pic.js`, `chung/quy-tac-ve.js` — dựng `\pic` và quy tắc vẽ hình, dùng khi đồng bộ kho-tikz cho Claude local.
+- `chung/xuat-ai.js` — nút "Đồng bộ kho-tikz" (chủ kho) ở Dữ liệu Hình TikZ: ghi kho vào thư mục `kho-tikz` trong Google Drive (ví dụ `G:\My Drive\kho-tikz`) gồm `index.json`, `hinh/`, `pic/`, `anh/`, `macro-chung.tex`, `HUONG-DAN.md`, `AGENTS.md`, `CLAUDE.md` cho Claude local. Chrome/Edge: chọn thư mục một lần, chọn "Cho phép mọi lần truy cập" khi trình duyệt hỏi quyền; sau đó web tự đồng bộ (chỉ ghi phần thay đổi) mỗi khi mở trang hoặc kho thay đổi. Trình duyệt khác tải `kho-tikz.zip`.
 - `chung/zip.js` — tạo file ZIP trong trình duyệt (tải từng hình hoặc toàn bộ kho).
 
 ## Firestore
@@ -19,7 +19,7 @@ Chạy hoàn toàn trên trình duyệt: **GitHub Pages + Firebase** (Authentica
 | `hinh/{id}` | tên, loại, khối, chủ đề, từ khóa, mô tả, nhóm (`nhom`, một cấp), createdAt, updatedAt |
 | `ma/{id}` | `source` (mã TikZ), `v` |
 | `anh/{id}` | `data` (ảnh data URL), `v` = updatedAt khi build |
-| `caiDat/chung` | `macros`, `quyTacVe` (ghi vào HUONG-DAN.md khi xuất kho; để trống = dùng quy tắc mặc định) |
+| `caiDat/chung` | `macros`, `quyTacVe` (ghi vào HUONG-DAN.md khi đồng bộ kho-tikz; để trống = dùng quy tắc mặc định) |
 | `nguoiDung/{uid}` | email, hoTen, `quyen {xem, tai, sua}`, khoa, daXoa, taoLuc, lanCuoi |
 
 ## Tài khoản và quyền

@@ -92,7 +92,7 @@
 
   function chuDe(){var select=$id('chu-de'),cu=select.value;select.replaceChildren(new Option('Tất cả chủ đề',''));Array.from(new Set(items.filter(function(x){return !real||x.kind==='real';}).map(function(x){return x.topic;}).filter(Boolean))).sort().forEach(function(t){select.add(new Option(t,t));});select.value=cu;if(select.value!==cu)select.value='';}
   var huy=null;
-  async function load(){var button=$id('tai-lai');button.disabled=true;HienThi.xoaLoi();try{if(huy)huy();huy=await Kho.theoDoi(function(ds){items=ds;chuDe();if(!(hop.open&&busy))render();button.disabled=false;},function(e){HienThi.loi(e);button.disabled=false;});}catch(e){HienThi.loi(e);button.disabled=false;}}
+  async function load(){var button=$id('tai-lai');button.disabled=true;HienThi.xoaLoi();try{if(huy)huy();huy=await Kho.theoDoi(function(ds){items=ds;chuDe();if(!(hop.open&&busy))render();button.disabled=false;dongBoTuDong();},function(e){HienThi.loi(e);button.disabled=false;});}catch(e){HienThi.loi(e);button.disabled=false;}}
 
   /* ---------- Hộp sửa nhanh ---------- */
   var hop=node('dialog','hop-sua');
@@ -142,18 +142,32 @@
   };
 
   if(!coSua)$id('doi-ten-nhom').hidden=true;if(!coTai){$id('tai-toan-bo').hidden=true;$id('zip-nhom').hidden=true;}
-  /* ---------- Xuất kho cho AI (chủ kho) ---------- */
+  /* ---------- Đồng bộ kho-tikz (chủ kho): ghi kho vào thư mục kho-tikz trong Google Drive cho Claude local ---------- */
+  var dongBoTuDong=function(){};
   if(DangNhap.laChu()&&window.XuatAI){
+    var tt=$id('dong-bo-tt'),KHOA_DB='mtk_dongbo_kho';
     $id('xuat-ai').hidden=false;
-    if(XuatAI.ghiThangDuoc)XuatAI.layHandle().then(function(h){if(h){$id('doi-thu-muc-ai').hidden=false;$id('xuat-ai').title='Ghi kho vào thư mục "'+h.name+'" cho Codex và Claude Cowork';}});
-    else $id('xuat-ai').title='Trình duyệt này không ghi thẳng vào thư mục được: web tải về kho-tikz.zip, bạn giải nén đè vào thư mục kho-tikz trong Google Drive';
+    var bao=function(t){tt.hidden=!t;tt.textContent=t||'';};
+    var gio=function(){return new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});};
+    var dauKho=function(){return items.filter(function(x){return !laNhap(x);}).map(function(x){return x.id+':'+(x.updatedAt||'')+':'+(x.nhom||'')+':'+(x.title||'');}).sort().join('|');};
+    var ghiDau=function(){try{localStorage.setItem(KHOA_DB,dauKho());}catch(e){}};
+    var daDongBo=function(){try{return localStorage.getItem(KHOA_DB)===dauKho();}catch(e){return false;}};
+    if(XuatAI.ghiThangDuoc)XuatAI.layHandle().then(function(h){if(h){$id('doi-thu-muc-ai').hidden=false;$id('xuat-ai').title='Đồng bộ kho vào thư mục "'+h.name+'" (Google Drive) cho Claude local';}else bao('Bấm Đồng bộ kho-tikz rồi chọn thư mục G:\\My Drive\\kho-tikz (chỉ cần chọn một lần).');});
+    else{$id('xuat-ai').title='Trình duyệt này không ghi thẳng vào thư mục được: web tải về kho-tikz.zip';bao('Trình duyệt này không ghi thẳng vào Google Drive được. Hãy mở web bằng Chrome hoặc Edge để đồng bộ một chạm.');}
     var xuat=async function(chonLai){var b=$id('xuat-ai'),cu=b.textContent;b.disabled=true;HienThi.xoaLoi();
-      try{var kq=await XuatAI.chay(function(i,n){b.textContent='Đang xuất '+i+'/'+n+'…';},chonLai);
+      try{var kq=await XuatAI.chay(function(i,n){b.textContent='Đang đồng bộ '+i+'/'+n+'…';},chonLai);
         if(!kq)return;
-        if(kq.zip)GiaoDien.thongBao('Đã tải kho-tikz.zip ('+kq.soHinh+' hình). Giải nén đè vào thư mục Google Drive.');
-        else{$id('doi-thu-muc-ai').hidden=false;GiaoDien.thongBao('Đã xuất '+kq.soHinh+' hình vào "'+kq.thuMuc+'": ghi mới '+kq.ghiMoi+(kq.xoa?', xóa '+kq.xoa:'')+'.');}}
+        if(kq.zip)GiaoDien.thongBao('Đã tải kho-tikz.zip ('+kq.soHinh+' hình). Giải nén đè vào thư mục kho-tikz trong Google Drive.');
+        else{ghiDau();$id('doi-thu-muc-ai').hidden=false;bao('Đã đồng bộ vào "'+kq.thuMuc+'" lúc '+gio()+' · tự đồng bộ khi kho thay đổi.');GiaoDien.thongBao('Đã đồng bộ '+kq.soHinh+' hình vào "'+kq.thuMuc+'": ghi mới '+kq.ghiMoi+(kq.xoa?', xóa '+kq.xoa:'')+'.');}}
       catch(e){HienThi.loi(e);}finally{b.disabled=false;b.textContent=cu;}};
     $id('xuat-ai').onclick=function(){xuat(false);};$id('doi-thu-muc-ai').onclick=function(){xuat(true);};
+    // Tự đồng bộ (không hỏi) khi kho đổi so với lần đồng bộ trước, nếu trình duyệt còn giữ quyền ghi thư mục.
+    var hen=null;
+    dongBoTuDong=function(){if(!XuatAI.ghiThangDuoc||!items.length||daDongBo())return;clearTimeout(hen);hen=setTimeout(async function(){
+      try{var kq=await XuatAI.tuDong(function(i,n){bao('Đang tự đồng bộ '+i+'/'+n+'…');});
+        if(!kq){if(!tt.textContent||/^Đang/.test(tt.textContent))bao('Kho có thay đổi chưa đồng bộ. Bấm Đồng bộ kho-tikz.');return;}
+        ghiDau();bao('Đã tự đồng bộ vào "'+kq.thuMuc+'" lúc '+gio()+(kq.ghiMoi||kq.xoa?' · ghi mới '+kq.ghiMoi+(kq.xoa?', xóa '+kq.xoa:''):'')+'.');}
+      catch(e){bao('Tự đồng bộ lỗi: '+(e.message||e)+'. Bấm Đồng bộ kho-tikz để thử lại.');}},4000);};
   }
   ['tim','khoi','chu-de'].forEach(function(id){$id(id).addEventListener('input',render);});$id('tai-lai').onclick=load;await load();
 })();
