@@ -11,6 +11,7 @@ Chạy hoàn toàn trên trình duyệt: **GitHub Pages + Firebase** (Authentica
 - `cai-dat.html` + `trang/cai-dat.js` + `trang/quan-tri.js` — Cài đặt (tài khoản, macro, quy tắc vẽ) và Quản trị tài khoản (chỉ chủ kho) gộp chung một trang; `quan-tri.html` chỉ chuyển hướng sang đây.
 - `chung/pic.js`, `chung/quy-tac-ve.js` — dựng `\pic` và quy tắc vẽ hình, dùng khi đồng bộ kho-tikz cho Claude local.
 - `chung/xuat-ai.js` — nút "Đồng bộ kho-tikz" (chủ kho) ở Dữ liệu Hình TikZ: ghi kho vào thư mục `kho-tikz` trong Google Drive (ví dụ `G:\My Drive\kho-tikz`) gồm `index.json`, `hinh/`, `pic/`, `anh/`, `macro-chung.tex`, `HUONG-DAN.md`, `AGENTS.md`, `CLAUDE.md` cho Claude local. Chrome/Edge: chọn thư mục một lần, chọn "Cho phép mọi lần truy cập" khi trình duyệt hỏi quyền; sau đó web tự đồng bộ (chỉ ghi phần thay đổi) mỗi khi mở trang hoặc kho thay đổi. Trình duyệt khác tải `kho-tikz.zip`.
+- Nút "Nhập hình từ file" (quyền Sửa kho) ở Dữ liệu Hình TikZ: nhập nhiều hình một lần từ file `.json` dạng `{ "hinh": [{ title, kind, grade, topic, tags, description, nhom, source, image }] }`; có `image` (data URL) thì lưu luôn không build lại; hình trùng tên trong cùng nhóm được bỏ qua.
 - `chung/zip.js` — tạo file ZIP trong trình duyệt (tải từng hình hoặc toàn bộ kho).
 
 ## Firestore
