@@ -142,6 +142,26 @@
   };
 
   if(!coSua)$id('doi-ten-nhom').hidden=true;if(!coTai){$id('tai-toan-bo').hidden=true;$id('zip-nhom').hidden=true;}
+  /* ---------- Nhập nhiều hình từ file JSON: { hinh: [{ title, kind, grade, topic, tags, description, nhom, source, image }] } ----------
+     Có ảnh thì lưu luôn, không build lại; hình trùng tên trong cùng nhóm thì bỏ qua để nhập lại không bị nhân đôi. */
+  if(coSua){
+    var nhapNut=$id('nhap-hinh'),nhapTep=$id('nhap-hinh-tep');nhapNut.hidden=false;nhapNut.onclick=function(){nhapTep.click();};
+    nhapTep.onchange=async function(){var f=nhapTep.files[0];nhapTep.value='';if(!f)return;var cu=nhapNut.textContent;nhapNut.disabled=true;HienThi.xoaLoi();
+      try{var d;try{d=JSON.parse(await f.text());}catch(e){throw Error('File không phải JSON hợp lệ.');}
+        var ds=Array.isArray(d)?d:d&&d.hinh;if(!Array.isArray(ds)||!ds.length)throw Error('File không có danh sách hình.');
+        if(!confirm('Nhập '+ds.length+' hình từ "'+f.name+'" vào kho?'))return;
+        var khoa=function(t,n){return String(t||'').trim()+'|'+Kho.chuanNhom(n);},daCo={},them=0,boQua=0,loi=[];
+        nhapNut.textContent='Đang đọc kho…';(await Kho.danhSach()).forEach(function(x){daCo[khoa(x.title,x.nhom)]=1;});
+        for(var i=0;i<ds.length;i++){var h=ds[i]||{};nhapNut.textContent='Đang nhập '+(i+1)+'/'+ds.length+'…';
+          if(daCo[khoa(h.title,h.nhom)]){boQua++;continue;}
+          try{var src=Tikz.tach(String(h.source||'')),anh=typeof h.image==='string'&&h.image.indexOf('data:image/')===0?h.image:'';
+            await Kho.luu(Object.assign(Tikz.moi(),{title:h.title,kind:h.kind==='basic'?'basic':'real',grade:String(h.grade||''),topic:h.topic||'',tags:h.tags||'',description:h.description||'',nhom:h.nhom||'',source:src,image:anh,imageSource:anh?src:''}));
+            daCo[khoa(h.title,h.nhom)]=1;them++;}
+          catch(e){loi.push((h.title||'Hình '+(i+1))+': '+(e.message||e));}}
+        GiaoDien.thongBao('Đã nhập '+them+' hình'+(boQua?', bỏ qua '+boQua+' hình đã có':'')+'.');
+        if(loi.length)HienThi.loi(Error('Một số hình chưa nhập được:\n'+loi.join('\n')));}
+      catch(e){HienThi.loi(e);}finally{nhapNut.disabled=false;nhapNut.textContent=cu;}};
+  }
   /* ---------- Đồng bộ kho-tikz (chủ kho): ghi kho vào thư mục kho-tikz trong Google Drive cho Claude local ---------- */
   var dongBoTuDong=function(){};
   if(DangNhap.laChu()&&window.XuatAI){
